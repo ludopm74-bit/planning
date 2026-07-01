@@ -140,7 +140,7 @@
         .mode-admin-active .day-cell { cursor: cell; }
         
         .day-cell.has-astreinte {
-            background-color: #ffe6e6 !important; 
+            background-color: #ffe6e6 !important;
             outline: 3px solid var(--astreinte-color) !important;
             outline-offset: -3px;
             z-index: 2;
@@ -152,13 +152,7 @@
         .cell-split { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; background-color: transparent; color: #333; }
         .cell-split.split-top { border-bottom: 1px dashed rgba(0,0,0,0.1); }
 
-        .section-table-title {
-            color: var(--navy-dark);
-            margin: 25px 0 10px 0;
-            border-bottom: 2px solid var(--navy-dark);
-            padding-bottom: 5px;
-            font-size: 18px;
-        }
+        .section-table-title { color: var(--navy-dark); margin: 25px 0 10px 0; border-bottom: 2px solid var(--navy-dark); padding-bottom: 5px; font-size: 18px; }
 
         .table-container { overflow-x: auto; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px;}
         table { border-collapse: collapse; width: 100%; min-width: 1800px; }
@@ -199,14 +193,7 @@
         @media print {
             body { background: white; padding: 0; margin: 0; }
             header, #admin-panel, .search-bar-container, #bulk-menu, .action-col, .btn { display: none !important; }
-            .print-only-title {
-                display: block !important;
-                text-align: center;
-                color: var(--navy-dark);
-                font-size: 20px;
-                font-weight: bold;
-                margin-bottom: 15px;
-            }
+            .print-only-title { display: block !important; text-align: center; color: var(--navy-dark); font-size: 20px; font-weight: bold; margin-bottom: 15px; }
             .legend { display: flex !important; box-shadow: none !important; border: 1px solid #ccc; margin-top: 20px; page-break-inside: avoid; }
             .table-container { overflow: visible !important; box-shadow: none !important; margin-bottom: 10px !important;}
             table { min-width: auto !important; width: 100% !important; table-layout: fixed; page-break-inside: avoid; border: 2px solid black !important; }
@@ -219,7 +206,7 @@
         }
     </style>
 </head>
-<body onmouseup="handleGlobalMouseUp()">
+<body onmouseup="handleGlobalMouseUp(event)">
 
     <header>
         <div>
@@ -364,27 +351,25 @@
     </div>
 
     <script>
-        // CONFIGURATION SUPABASE (REMPLACEZ CES VALEURS)
+        // CONFIGURATION SUPABASE (URLS CONSERVÉES À L'IDENTIQUE)
         const SUPABASE_URL = "https://mfbpyrcddvcstqdkyxso.supabase.co/rest/v1/"; 
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mYnB5cmNkZHZjc3RxZGt5eHNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MjQ3MzEsImV4cCI6MjA5ODQwMDczMX0.b7TwHQXTlLZcClFAbrOfYiojRI3s8I64ruktKGc0OdI";
         
-        // Initialisation sécurisée du client
+        // Initialisation sécurisée du client (CORRECTION : Variable unique supabaseClient)
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let customStatuses = {};
         let employeeTypes = {}; 
         let globalYearlyData = {}; 
-        let adminPassword = "admin123"; // Mot de passe de secours initial
+        let adminPassword = "admin123";
 
         const monthNamesFr = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
         const dayLabelsMap = ["dim", "lun", "mar", "mer", "jeu", "ven", "sam"];
         const weekDaysEng = ["lun", "mar", "mer", "jeu", "ven", "sam", "dim"];
-
         let currentYear = 2026; 
         let monthsMeta = [];
         let currentMonthId = new Date().getMonth(); 
         let isAdmin = false;
-        
         let isDragging = false;
         let dragStartDay = null;
         let dragEndDay = null;
@@ -568,7 +553,6 @@
                     }
                 });
             });
-
             const { data } = await supabaseClient.from('schedules').select('*').eq('year', currentYear);
             if (data) {
                 data.forEach(row => {
@@ -593,7 +577,7 @@
             }, { onConflict: 'year,month_id,day,employee_name' });
         }
 
-        // --- SYNCRONISATION UI ---
+        // --- SYNCHRONISATION UI ---
 
         function syncDocumentTitle() {
             const title = document.getElementById('document-title').value;
@@ -639,7 +623,6 @@
                 item.appendChild(document.createTextNode(customStatuses[code].label || code));
                 container.appendChild(item);
             });
-
             let astItem = document.createElement('div');
             astItem.className = "legend-item";
             astItem.innerHTML = `<span class="badge" style="outline: 3px solid var(--astreinte-color); outline-offset: -3px; background-color: #ffe6e6;">-</span> Astreinte (Contour rouge)`;
@@ -654,7 +637,6 @@
             btnClear.style.gridColumn = "span 3";
             btnClear.onclick = () => applyStatusToSelection("-");
             container.appendChild(btnClear);
-
             Object.keys(customStatuses).forEach(st => {
                 let btn = document.createElement('button');
                 btn.textContent = st;
@@ -680,11 +662,9 @@
                 `;
                 container.appendChild(item);
             });
-
             const selectContainer = document.getElementById('week-template-selectors');
             selectContainer.innerHTML = "";
             let extendedOptions = ["-", ...Object.keys(customStatuses)];
-
             weekDaysEng.forEach(day => {
                 let box = document.createElement('div');
                 box.className = "week-day-box";
@@ -701,7 +681,6 @@
                 let selPer = document.createElement('select');
                 selPer.id = `template-${day}-period`;
                 selPer.innerHTML = `<option value="FULL">Jour</option><option value="M">Mat</option><option value="AM">A-M</option>`;
-
                 box.appendChild(selAct);
                 box.appendChild(selPer);
                 selectContainer.appendChild(box);
@@ -714,12 +693,10 @@
                 el.setAttribute('colspan', currentMonthMeta.days);
                 el.textContent = currentMonthMeta.name;
             });
-
             const statusCount = Object.keys(customStatuses).length;
             document.querySelectorAll('.totaux-main-header').forEach(el => {
                 el.setAttribute('colspan', statusCount);
             });
-
             document.querySelectorAll('.header-days-row').forEach(row => {
                 row.innerHTML = "";
                 for (let i = 1; i <= currentMonthMeta.days; i++) {
@@ -758,7 +735,6 @@
             tbody.innerHTML = "";
             const currentMonthMeta = monthsMeta[currentMonthId];
             const monthData = globalYearlyData[currentMonthId] || {};
-
             Object.keys(monthData).forEach(emp => {
                 if (employeeTypes[emp] !== typeFilter) return;
 
@@ -802,7 +778,8 @@
                         }
                     }
                     
-                    container.appendChild(topPart); container.appendChild(bottomPart);
+                    container.appendChild(topPart);
+                    container.appendChild(bottomPart);
                     td.appendChild(container);
 
                     td.onmousedown = (e) => handleMouseDown(e, emp, d);
@@ -815,7 +792,6 @@
                     tdTotal.className = `total-cell cell-total-${emp}-${h}`;
                     tr.appendChild(tdTotal);
                 });
-                
                 let tdAction = document.createElement('td');
                 tdAction.className = "action-col";
                 tdAction.innerHTML = `<button class="btn" style="background-color:#dc3545; color:white; padding:2px 6px; font-size:11px;" onclick="deleteEmployee('${emp}')">Suppr.</button>`;
@@ -858,21 +834,26 @@
             updateSelectionVisual();
         }
 
+        // CORRECTION : Implémentation fonctionnelle de handleGlobalMouseUp
         function handleGlobalMouseUp(e) {
             if (!isDragging) return;
             isDragging = false;
+            
             const menu = document.getElementById('bulk-menu');
-            menu.style.left = window.scrollX + window.event.clientX + 12 + 'px';
-            menu.style.top = window.scrollY + window.event.clientY + 12 + 'px';
-            menu.style.display = 'block';
+            if (menu) {
+                // Positionnement automatique du menu popover à côté du curseur
+                menu.style.left = (window.scrollX + e.clientX + 12) + 'px';
+                menu.style.top = (window.scrollY + e.clientY + 12) + 'px';
+                menu.style.display = 'block';
+            }
         }
 
         function updateSelectionVisual() {
             if (!activeEmployeeRow) return;
             const row = document.querySelector(`tr[data-employee="${activeEmployeeRow}"]`);
+            if(!row) return;
             const min = Math.min(dragStartDay, dragEndDay);
             const max = Math.max(dragStartDay, dragEndDay);
-            
             row.querySelectorAll('.day-cell').forEach(cell => {
                 const day = parseInt(cell.getAttribute('data-day'));
                 if (day >= min && day <= max) cell.classList.add('selecting');
@@ -885,7 +866,6 @@
             const min = Math.min(dragStartDay, dragEndDay);
             const max = Math.max(dragStartDay, dragEndDay);
             const periodType = document.querySelector('input[name="target-period"]:checked').value;
-            
             for (let d = min; d <= max; d++) {
                 let dayObj = globalYearlyData[currentMonthId][activeEmployeeRow][d];
                 if (periodType === "FULL") { dayObj.m = status; dayObj.am = status; } 
@@ -901,7 +881,6 @@
             if (!activeEmployeeRow) return;
             const min = Math.min(dragStartDay, dragEndDay);
             const max = Math.max(dragStartDay, dragEndDay);
-
             for (let d = min; d <= max; d++) {
                 let dayObj = globalYearlyData[currentMonthId][activeEmployeeRow][d];
                 dayObj.astreinte = boolVal;
@@ -955,7 +934,6 @@
                     let dayOfWeekIndex = (currentMonthMeta.startDayIndex + (d - 1)) % 7;
                     let dayLabelFrench = dayLabelsMap[dayOfWeekIndex];
                     let routine = weeklyRoutine[dayLabelFrench] || {act: "-", per: "FULL"};
-                    
                     if (routine.act !== "-") {
                         let dayObj = globalYearlyData[currentMonthId][emp][d];
                         if (routine.per === "FULL" || routine.per === "M") dayObj.m = routine.act;
@@ -979,7 +957,6 @@
             }
             Object.keys(customStatuses).forEach(h => headers.push("Total " + h));
             csv.push(headers.join(";"));
-
             const monthData = globalYearlyData[currentMonthId];
             Object.keys(monthData).forEach(emp => {
                 let row = [emp, employeeTypes[emp]];
@@ -993,7 +970,6 @@
                 });
                 csv.push(row.join(";"));
             });
-
             let csvContent = "data:text/csv;charset=utf-8,\uFEFF" + csv.join("\n");
             let encodedUri = encodeURI(csvContent);
             let link = document.createElement("a");
