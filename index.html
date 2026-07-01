@@ -367,7 +367,7 @@
         // CONFIGURATION SUPABASE
         const SUPABASE_URL = "https://mfbpyrcddvcstqdkyxso.supabase.co/rest/v1/"; 
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mYnB5cmNkZHZjc3RxZGt5eHNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MjQ3MzEsImV4cCI6MjA5ODQwMDczMX0.b7TwHQXTlLZcClFAbrOfYiojRI3s8I64ruktKGc0OdI";
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let customStatuses = {};
         let employeeTypes = {}; 
