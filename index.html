@@ -364,15 +364,17 @@
     </div>
 
     <script>
-        // CONFIGURATION SUPABASE
+        // CONFIGURATION SUPABASE (REMPLACEZ CES VALEURS)
         const SUPABASE_URL = "https://mfbpyrcddvcstqdkyxso.supabase.co/rest/v1/"; 
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mYnB5cmNkZHZjc3RxZGt5eHNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MjQ3MzEsImV4cCI6MjA5ODQwMDczMX0.b7TwHQXTlLZcClFAbrOfYiojRI3s8I64ruktKGc0OdI";
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // Initialisation sécurisée du client
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let customStatuses = {};
         let employeeTypes = {}; 
         let globalYearlyData = {}; 
-        let adminPassword = "admin123";
+        let adminPassword = "admin123"; // Mot de passe de secours initial
 
         const monthNamesFr = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
         const dayLabelsMap = ["dim", "lun", "mar", "mer", "jeu", "ven", "sam"];
@@ -393,11 +395,14 @@
             monthsMeta = buildMonthsMeta(currentYear);
             buildMonthSelectOptions();
 
-            // Initialisation synchrone avec Supabase Cloud
-            await fetchGlobalConfig();
-            await fetchCustomStatuses();
-            await fetchEmployees();
-            await loadYearDataFromSupabase();
+            try {
+                await fetchGlobalConfig();
+                await fetchCustomStatuses();
+                await fetchEmployees();
+                await loadYearDataFromSupabase();
+            } catch(e) {
+                console.error("Erreur lors de la synchronisation initiale avec Supabase:", e);
+            }
 
             refreshUI();
         };
@@ -430,18 +435,18 @@
         // --- INTERFACES API SUPABASE ---
 
         async function fetchGlobalConfig() {
-            const { data } = await supabase.from('global_config').select('*');
+            const { data } = await supabaseClient.from('global_config').select('*');
             if (data) {
                 data.forEach(item => {
                     if (item.key === 'doc_title') document.getElementById('document-title').value = item.value;
-                    if (item.key === 'admin_password') adminPassword = item.value;
+                    if (item.key === 'admin_password' && item.value) adminPassword = item.value;
                 });
             }
         }
 
         async function updateDocumentTitleInSupabase() {
             const val = document.getElementById('document-title').value;
-            await supabase.from('global_config').upsert({ key: 'doc_title', value: val });
+            await supabaseClient.from('global_config').upsert({ key: 'doc_title', value: val });
             syncDocumentTitle();
         }
 
@@ -451,7 +456,7 @@
                 alert("⚠️ Le mot de passe doit contenir au moins 4 caractères.");
                 return;
             }
-            const { error } = await supabase.from('global_config').upsert({ key: 'admin_password', value: inputVal });
+            const { error } = await supabaseClient.from('global_config').upsert({ key: 'admin_password', value: inputVal });
             if(!error) {
                 adminPassword = inputVal;
                 document.getElementById('change-password-input').value = "";
@@ -460,7 +465,7 @@
         }
 
         async function fetchCustomStatuses() {
-            const { data } = await supabase.from('custom_statuses').select('*');
+            const { data } = await supabaseClient.from('custom_statuses').select('*');
             customStatuses = {};
             if (data && data.length > 0) {
                 data.forEach(row => {
@@ -474,7 +479,7 @@
             let color = document.getElementById('new-status-color').value;
             if(code) {
                 if(customStatuses[code]) { alert("Ce code existe déjà !"); return; }
-                await supabase.from('custom_statuses').insert({ code: code, color: color, text_color: '#000000', label: code });
+                await supabaseClient.from('custom_statuses').insert({ code: code, color: color, text_color: '#000000', label: code });
                 document.getElementById('new-status-code').value = "";
                 await fetchCustomStatuses();
                 refreshUI();
@@ -482,7 +487,7 @@
         }
 
         async function updateStatusColor(code, newColor) {
-            await supabase.from('custom_statuses').update({ color: newColor }).eq('code', code);
+            await supabaseClient.from('custom_statuses').update({ color: newColor }).eq('code', code);
             await fetchCustomStatuses();
             refreshUI();
         }
@@ -491,7 +496,7 @@
             let currentLabel = customStatuses[code].label || code;
             let newLabel = prompt(`Nouveau libellé complet pour le code "${code}" :`, currentLabel);
             if(newLabel && newLabel.trim() !== "") {
-                await supabase.from('custom_statuses').update({ label: newLabel.trim() }).eq('code', code);
+                await supabaseClient.from('custom_statuses').update({ label: newLabel.trim() }).eq('code', code);
                 await fetchCustomStatuses();
                 refreshUI();
             }
@@ -499,14 +504,14 @@
 
         async function deleteCustomStatus(code) {
             if(confirm(`Supprimer l'activité "${code}" ?`)) {
-                await supabase.from('custom_statuses').delete().eq('code', code);
+                await supabaseClient.from('custom_statuses').delete().eq('code', code);
                 await fetchCustomStatuses();
                 refreshUI();
             }
         }
 
         async function fetchEmployees() {
-            const { data } = await supabase.from('employees').select('*');
+            const { data } = await supabaseClient.from('employees').select('*');
             employeeTypes = {};
             if (data) {
                 data.forEach(emp => { employeeTypes[emp.name] = emp.type; });
@@ -518,7 +523,7 @@
             const typeInput = document.getElementById('new-emp-type');
             const name = nameInput.value.trim();
             if (name) {
-                const { error } = await supabase.from('employees').insert({ name: name, type: typeInput.value });
+                const { error } = await supabaseClient.from('employees').insert({ name: name, type: typeInput.value });
                 if(!error) {
                     nameInput.value = "";
                     await fetchEmployees();
@@ -534,7 +539,7 @@
             let newName = prompt(`Nouveau nom pour ${oldName} :`, oldName);
             if(newName && newName.trim() !== "" && newName.trim() !== oldName) {
                 newName = newName.trim();
-                const { error } = await supabase.from('employees').update({ name: newName }).eq('name', oldName);
+                const { error } = await supabaseClient.from('employees').update({ name: newName }).eq('name', oldName);
                 if(!error) {
                     await fetchEmployees();
                     await loadYearDataFromSupabase();
@@ -545,7 +550,7 @@
 
         async function deleteEmployee(name) {
             if (confirm(`Supprimer ${name} définitivement de la base de données ?`)) {
-                await supabase.from('employees').delete().eq('name', name);
+                await supabaseClient.from('employees').delete().eq('name', name);
                 await fetchEmployees();
                 await loadYearDataFromSupabase();
                 refreshUI();
@@ -564,7 +569,7 @@
                 });
             });
 
-            const { data } = await supabase.from('schedules').select('*').eq('year', currentYear);
+            const { data } = await supabaseClient.from('schedules').select('*').eq('year', currentYear);
             if (data) {
                 data.forEach(row => {
                     if (globalYearlyData[row.month_id] && globalYearlyData[row.month_id][row.employee_name]) {
@@ -579,7 +584,7 @@
         }
 
         async function pushScheduleChanges(emp, day, updateObj) {
-            await supabase.from('schedules').upsert({
+            await supabaseClient.from('schedules').upsert({
                 year: currentYear,
                 month_id: currentMonthId,
                 day: day,
@@ -1014,7 +1019,7 @@
                 let badge = document.getElementById('current-mode-badge');
                 badge.textContent = "Mode Administration Actif 🔓 Contrôle total Cloud";
                 badge.className = "badge-mode mode-edit";
-                refreshUI();
+                renderTable();
             } else {
                 alert("Code secret incorrect !");
             }
@@ -1031,7 +1036,7 @@
             let badge = document.getElementById('current-mode-badge');
             badge.textContent = "Mode Consultation 👁️";
             badge.className = "badge-mode mode-view";
-            refreshUI();
+            renderTable();
         }
     </script>
 </body>
