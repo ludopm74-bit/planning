@@ -351,11 +351,11 @@
     </div>
 
     <script>
-        // CONFIGURATION SUPABASE (URLS CONSERVÉES À L'IDENTIQUE)
+        // CONFIGURATION SUPABASE
         const SUPABASE_URL = "https://mfbpyrcddvcstqdkyxso.supabase.co/rest/v1/"; 
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mYnB5cmNkZHZjc3RxZGt5eHNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MjQ3MzEsImV4cCI6MjA5ODQwMDczMX0.b7TwHQXTlLZcClFAbrOfYiojRI3s8I64ruktKGc0OdI";
         
-        // Initialisation sécurisée du client (CORRECTION : Variable unique supabaseClient)
+        // Initialisation sécurisée du client
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let customStatuses = {};
@@ -386,7 +386,8 @@
                 await fetchEmployees();
                 await loadYearDataFromSupabase();
             } catch(e) {
-                console.error("Erreur lors de la synchronisation initiale avec Supabase:", e);
+                console.error("Erreur critique d'initialisation:", e);
+                alert("Impossible de se connecter à Supabase. Vérifiez la console (F12) et vos politiques RLS.");
             }
 
             refreshUI();
@@ -420,7 +421,8 @@
         // --- INTERFACES API SUPABASE ---
 
         async function fetchGlobalConfig() {
-            const { data } = await supabaseClient.from('global_config').select('*');
+            const { data, error } = await supabaseClient.from('global_config').select('*');
+            if (error) { console.error("Erreur global_config:", error); return; }
             if (data) {
                 data.forEach(item => {
                     if (item.key === 'doc_title') document.getElementById('document-title').value = item.value;
@@ -431,7 +433,8 @@
 
         async function updateDocumentTitleInSupabase() {
             const val = document.getElementById('document-title').value;
-            await supabaseClient.from('global_config').upsert({ key: 'doc_title', value: val });
+            const { error } = await supabaseClient.from('global_config').upsert({ key: 'doc_title', value: val });
+            if (error) { alert("Erreur lors de la sauvegarde du titre: " + error.message); }
             syncDocumentTitle();
         }
 
@@ -446,11 +449,14 @@
                 adminPassword = inputVal;
                 document.getElementById('change-password-input').value = "";
                 alert("🔑 Mot de passe cloud mis à jour !");
+            } else {
+                alert("Erreur changement mot de passe: " + error.message);
             }
         }
 
         async function fetchCustomStatuses() {
-            const { data } = await supabaseClient.from('custom_statuses').select('*');
+            const { data, error } = await supabaseClient.from('custom_statuses').select('*');
+            if (error) { console.error("Erreur custom_statuses:", error); return; }
             customStatuses = {};
             if (data && data.length > 0) {
                 data.forEach(row => {
@@ -464,7 +470,11 @@
             let color = document.getElementById('new-status-color').value;
             if(code) {
                 if(customStatuses[code]) { alert("Ce code existe déjà !"); return; }
-                await supabaseClient.from('custom_statuses').insert({ code: code, color: color, text_color: '#000000', label: code });
+                const { error } = await supabaseClient.from('custom_statuses').insert({ code: code, color: color, text_color: '#000000', label: code });
+                if (error) {
+                    alert("Erreur lors de la création de l'activité: " + error.message);
+                    return;
+                }
                 document.getElementById('new-status-code').value = "";
                 await fetchCustomStatuses();
                 refreshUI();
@@ -472,7 +482,8 @@
         }
 
         async function updateStatusColor(code, newColor) {
-            await supabaseClient.from('custom_statuses').update({ color: newColor }).eq('code', code);
+            const { error } = await supabaseClient.from('custom_statuses').update({ color: newColor }).eq('code', code);
+            if (error) alert("Erreur modification couleur: " + error.message);
             await fetchCustomStatuses();
             refreshUI();
         }
@@ -481,7 +492,8 @@
             let currentLabel = customStatuses[code].label || code;
             let newLabel = prompt(`Nouveau libellé complet pour le code "${code}" :`, currentLabel);
             if(newLabel && newLabel.trim() !== "") {
-                await supabaseClient.from('custom_statuses').update({ label: newLabel.trim() }).eq('code', code);
+                const { error } = await supabaseClient.from('custom_statuses').update({ label: newLabel.trim() }).eq('code', code);
+                if (error) alert("Erreur modification libellé: " + error.message);
                 await fetchCustomStatuses();
                 refreshUI();
             }
@@ -489,14 +501,16 @@
 
         async function deleteCustomStatus(code) {
             if(confirm(`Supprimer l'activité "${code}" ?`)) {
-                await supabaseClient.from('custom_statuses').delete().eq('code', code);
+                const { error } = await supabaseClient.from('custom_statuses').delete().eq('code', code);
+                if (error) alert("Erreur suppression activité: " + error.message);
                 await fetchCustomStatuses();
                 refreshUI();
             }
         }
 
         async function fetchEmployees() {
-            const { data } = await supabaseClient.from('employees').select('*');
+            const { data, error } = await supabaseClient.from('employees').select('*');
+            if (error) { console.error("Erreur employees:", error); return; }
             employeeTypes = {};
             if (data) {
                 data.forEach(emp => { employeeTypes[emp.name] = emp.type; });
@@ -515,7 +529,7 @@
                     await loadYearDataFromSupabase();
                     refreshUI();
                 } else {
-                    alert("Erreur lors du traitement (L'utilisateur existe peut-être déjà).");
+                    alert("Erreur d'ajout de l'agent : " + error.message);
                 }
             }
         }
@@ -529,16 +543,22 @@
                     await fetchEmployees();
                     await loadYearDataFromSupabase();
                     refreshUI();
+                } else {
+                    alert("Erreur renommage: " + error.message);
                 }
             }
         }
 
         async function deleteEmployee(name) {
             if (confirm(`Supprimer ${name} définitivement de la base de données ?`)) {
-                await supabaseClient.from('employees').delete().eq('name', name);
-                await fetchEmployees();
-                await loadYearDataFromSupabase();
-                refreshUI();
+                const { error } = await supabaseClient.from('employees').delete().eq('name', name);
+                if(!error) {
+                    await fetchEmployees();
+                    await loadYearDataFromSupabase();
+                    refreshUI();
+                } else {
+                    alert("Erreur suppression agent: " + error.message);
+                }
             }
         }
 
@@ -553,7 +573,8 @@
                     }
                 });
             });
-            const { data } = await supabaseClient.from('schedules').select('*').eq('year', currentYear);
+            const { data, error } = await supabaseClient.from('schedules').select('*').eq('year', currentYear);
+            if (error) { console.error("Erreur schedules:", error); return; }
             if (data) {
                 data.forEach(row => {
                     if (globalYearlyData[row.month_id] && globalYearlyData[row.month_id][row.employee_name]) {
@@ -568,13 +589,14 @@
         }
 
         async function pushScheduleChanges(emp, day, updateObj) {
-            await supabaseClient.from('schedules').upsert({
+            const { error } = await supabaseClient.from('schedules').upsert({
                 year: currentYear,
                 month_id: currentMonthId,
                 day: day,
                 employee_name: emp,
                 ...updateObj
             }, { onConflict: 'year,month_id,day,employee_name' });
+            if (error) console.error("Erreur sauvegarde cellule:", error.message);
         }
 
         // --- SYNCHRONISATION UI ---
@@ -695,7 +717,7 @@
             });
             const statusCount = Object.keys(customStatuses).length;
             document.querySelectorAll('.totaux-main-header').forEach(el => {
-                el.setAttribute('colspan', statusCount);
+                el.setAttribute('colspan', statusCount || 1);
             });
             document.querySelectorAll('.header-days-row').forEach(row => {
                 row.innerHTML = "";
@@ -834,14 +856,12 @@
             updateSelectionVisual();
         }
 
-        // CORRECTION : Implémentation fonctionnelle de handleGlobalMouseUp
         function handleGlobalMouseUp(e) {
             if (!isDragging) return;
             isDragging = false;
             
             const menu = document.getElementById('bulk-menu');
             if (menu) {
-                // Positionnement automatique du menu popover à côté du curseur
                 menu.style.left = (window.scrollX + e.clientX + 12) + 'px';
                 menu.style.top = (window.scrollY + e.clientY + 12) + 'px';
                 menu.style.display = 'block';
@@ -1015,5 +1035,3 @@
             renderTable();
         }
     </script>
-</body>
-</html>
