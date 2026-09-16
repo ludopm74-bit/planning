@@ -360,6 +360,7 @@
 
         let customStatuses = {};
         let employeeTypes = {}; 
+        let employeeArchiveDates = {}; // Stocke les dates de fin/départ des salariés (ex: "2026-08")
         let globalYearlyData = {}; 
         let adminPassword = "admin123";
 
@@ -512,8 +513,12 @@
             const { data, error } = await supabaseClient.from('employees').select('*');
             if (error) { console.error("Erreur employees:", error); return; }
             employeeTypes = {};
+            employeeArchiveDates = {};
             if (data) {
-                data.forEach(emp => { employeeTypes[emp.name] = emp.type; });
+                data.forEach(emp => { 
+                    employeeTypes[emp.name] = emp.type;
+                    employeeArchiveDates[emp.name] = emp.archive_date || null;
+                });
             }
         }
 
@@ -522,7 +527,7 @@
             const typeInput = document.getElementById('new-emp-type');
             const name = nameInput.value.trim();
             if (name) {
-                const { error } = await supabaseClient.from('employees').insert({ name: name, type: typeInput.value });
+                const { error } = await supabaseClient.from('employees').insert({ name: name, type: typeInput.value, archive_date: null });
                 if(!error) {
                     nameInput.value = "";
                     await fetchEmployees();
@@ -549,8 +554,22 @@
             }
         }
 
+        async function archiveEmployee(name) {
+            // Ajout de '-01' pour fournir un format YYYY-MM-DD valide à PostgreSQL (type DATE)
+            const currentMonthStr = `${currentYear}-${String(currentMonthId + 1).padStart(2, '0')}-01`;
+            if (confirm(`Régler la date de départ de ${name} à la fin de ${monthsMeta[currentMonthId].name} ?\n\nSes plannings passés seront conservés, mais il n'apparaîtra plus sur les mois futurs.`)) {
+                const { error } = await supabaseClient.from('employees').update({ archive_date: currentMonthStr }).eq('name', name);
+                if(!error) {
+                    await fetchEmployees();
+                    refreshUI();
+                } else {
+                    alert("Erreur d'archivage agent : " + error.message);
+                }
+            }
+        }
+
         async function deleteEmployee(name) {
-            if (confirm(`Supprimer ${name} définitivement de la base de données ?`)) {
+            if (confirm(`DANGER : Supprimer définitivement ${name} ET TOUT SON HISTORIQUE de la base de données ?\n\nSi vous souhaitez simplement qu'il n'apparaisse plus dans le futur tout en conservant ses plannings passés, utilisez plutôt "Archiver (Départ)".`)) {
                 const { error } = await supabaseClient.from('employees').delete().eq('name', name);
                 if(!error) {
                     await fetchEmployees();
@@ -734,6 +753,19 @@
             });
         }
 
+        function isEmployeeVisibleInMonth(emp, year, monthId) {
+            const archiveStr = employeeArchiveDates[emp];
+            if (!archiveStr) return true; // Actif sans restriction
+            
+            const [archYear, archMonth] = archiveStr.split('-').map(Number);
+            const currentMonthNum = monthId + 1; // 1-12
+            
+            if (year < archYear) return true;
+            if (year === archYear && currentMonthNum <= archMonth) return true;
+            
+            return false;
+        }
+
         function renderTable() {
             renderTableBody('planning-body-perm', 'permanent');
             renderTableBody('planning-body-sais', 'saisonnier');
@@ -759,6 +791,7 @@
             const monthData = globalYearlyData[currentMonthId] || {};
             Object.keys(monthData).forEach(emp => {
                 if (employeeTypes[emp] !== typeFilter) return;
+                if (!isEmployeeVisibleInMonth(emp, currentYear, currentMonthId)) return;
 
                 let tr = document.createElement('tr');
                 tr.setAttribute('data-employee', emp);
@@ -816,7 +849,10 @@
                 });
                 let tdAction = document.createElement('td');
                 tdAction.className = "action-col";
-                tdAction.innerHTML = `<button class="btn" style="background-color:#dc3545; color:white; padding:2px 6px; font-size:11px;" onclick="deleteEmployee('${emp}')">Suppr.</button>`;
+                tdAction.innerHTML = `
+                    <button class="btn" style="background-color:#ff9800; color:white; padding:2px 4px; font-size:10px; margin-right:2px;" onclick="archiveEmployee('${emp}')" title="Masquer à partir des mois suivants tout en gardant l'historique">Archiver (Départ)</button>
+                    <button class="btn" style="background-color:#dc3545; color:white; padding:2px 4px; font-size:10px;" onclick="deleteEmployee('${emp}')" title="Supprimer définitivement de la BDD">Suppr.</button>
+                `;
                 tr.appendChild(tdAction);
 
                 tbody.appendChild(tr);
@@ -931,6 +967,7 @@
             if(!select) return;
             select.innerHTML = "";
             Object.keys(globalYearlyData[currentMonthId] || {}).forEach(emp => {
+                if (!isEmployeeVisibleInMonth(emp, currentYear, currentMonthId)) return;
                 let opt = document.createElement('option'); opt.value = emp; opt.textContent = emp;
                 select.appendChild(opt);
             });
@@ -979,6 +1016,7 @@
             csv.push(headers.join(";"));
             const monthData = globalYearlyData[currentMonthId];
             Object.keys(monthData).forEach(emp => {
+                if (!isEmployeeVisibleInMonth(emp, currentYear, currentMonthId)) return;
                 let row = [emp, employeeTypes[emp]];
                 for (let d = 1; d <= currentMonthMeta.days; d++) {
                     let obj = monthData[emp][d] || { m: "-", am: "-", astreinte: false };
