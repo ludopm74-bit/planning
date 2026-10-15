@@ -84,6 +84,33 @@
         .btn-print { background-color: #00838f; color: white; }
         .btn-print:hover { background-color: #005662; }
 
+        /* SYSTÈME D'ONGLETS ADMIN */
+        .admin-nav-tabs {
+            display: none;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--admin-color);
+            padding-bottom: 10px;
+        }
+        .tab-btn {
+            background: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 10px 20px;
+            font-weight: bold;
+            border-radius: 6px 6px 0 0;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .tab-btn.active {
+            background: var(--admin-color);
+            color: white;
+            border-color: var(--admin-color);
+        }
+
+        .admin-tab-content { display: none; }
+        .admin-tab-content.active-tab { display: block; }
+
         #admin-panel {
             display: none;
             background: var(--card-bg);
@@ -213,7 +240,7 @@
 
         @media print {
             body { background: white; padding: 0; margin: 0; color: black; }
-            header, #admin-panel, .search-bar-container, #bulk-menu, .action-col, .btn, #admin-only-yearly-section { display: none !important; }
+            header, #admin-panel, .search-bar-container, #bulk-menu, .action-col, .btn, #admin-only-yearly-section, .admin-nav-tabs { display: none !important; }
             .print-only-title { display: block !important; text-align: center; color: var(--navy-dark); font-size: 20px; font-weight: bold; margin-bottom: 15px; }
             .legend { display: flex !important; box-shadow: none !important; border: 1px solid #ccc; margin-top: 20px; page-break-inside: avoid; }
             .table-container { overflow: visible !important; box-shadow: none !important; margin-bottom: 10px !important;}
@@ -244,6 +271,7 @@
 
     <div class="print-only-title" id="print-title-caption">Planning d'Équipe Global</div>
 
+    <!-- PANNEAU D'AUTHENTIFICATION ET CONFIGURATION ADMIN -->
     <div id="admin-panel">
         <div id="auth-form">
             <h3 class="admin-header">Authentification Administrateur</h3>
@@ -255,56 +283,94 @@
         </div>
 
         <div id="admin-controls" style="display: none;">
-            <h3 class="admin-header">
-                Panneau Configuration & Personnalisation Cloud 🛠️
+            <div class="admin-header" style="margin-bottom: 15px;">
+                <h3 style="margin:0;">Panneau Configuration & Cloud 🛠️</h3>
                 <button class="btn btn-secondary" onclick="logoutAdmin()">Déconnexion</button>
-            </h3>
-            
-            <div class="admin-sections">
-                <div class="admin-card">
-                    <h4>Salariés</h4>
-                    <div class="form-group" style="display:block; margin-right:0;">
-                        <label>Nouvel agent :</label>
-                        <input type="text" id="new-emp-name" placeholder="Ex: Lucas Bernard" style="width:calc(100% - 15px); margin-bottom: 5px;">
-                        <select id="new-emp-type" style="width: 100%; margin-bottom: 5px;">
-                            <option value="permanent">Personnel Permanent</option>
-                            <option value="saisonnier_morzine">Saisonnier Morzine</option>
-                            <option value="saisonnier_avoriaz">Saisonnier Avoriaz</option>
-                        </select>
-                    </div>
-                    <button class="btn btn-primary" onclick="addEmployee()" style="width:100%; margin-bottom:8px;">Ajouter</button>
-                    <p style="font-size: 10px; color:#666; margin:0;">💡 Cliquez sur le nom d'un agent dans le tableau pour le renommer.</p>
-                </div>
+            </div>
 
-                <div class="admin-card">
-                    <h4>Gestion des Activités & Couleurs</h4>
-                    <div style="display: flex; gap: 4px; margin-bottom: 8px; border-bottom: 1px dashed var(--border-color); padding-bottom: 8px;">
-                        <input type="text" id="new-status-code" placeholder="Code" style="width: 45px; text-transform: uppercase;">
-                        <input type="color" id="new-status-color" value="#e0e0e0" style="width:25px; height:25px; padding:0;">
-                        <button class="btn btn-primary" style="padding:2px 8px; font-size:11px;" onclick="addCustomStatus()">Créer</button>
-                    </div>
-                    <div class="status-management-list" id="custom-status-mgmt-list"></div>
-                </div>
-                
-                <div class="admin-card">
-                    <h4>Routine Hebdomadaire</h4>
-                    <div class="form-group" style="margin-bottom:5px;">
-                        <label>Appliquer à :</label>
-                        <select id="template-employee-select"></select>
-                    </div>
-                    <div class="week-template-grid" id="week-template-selectors"></div>
-                    <button class="btn btn-success" onclick="applyWeekTemplate()" style="width: 100%; font-size:11px;">Déployer la routine</button>
-                </div>
+            <!-- ONGLETS DE NAVIGATION INTERNE ADMIN -->
+            <div class="admin-nav-tabs" id="admin-nav-tabs-container" style="display: flex;">
+                <button class="tab-btn active" onclick="switchAdminTab('tab-config', this)">⚙️ Paramètres & Salariés</button>
+                <button class="tab-btn" onclick="switchAdminTab('tab-hours', this)">⏱️ Horaires & Plages Horaires</button>
+            </div>
 
-                <div class="admin-card" style="background-color: var(--bg-light); border: 1px dashed var(--admin-color);">
-                    <h4>Sécurité Admin</h4>
-                    <div class="form-group" style="display:block; margin-right:0;">
-                        <label>Nouveau code secret :</label>
-                        <input type="password" id="change-password-input" placeholder="Nouveau code">
+            <!-- CONTENU TAB 1 : PARAMETRES -->
+            <div id="tab-config" class="admin-tab-content active-tab">
+                <div class="admin-sections">
+                    <div class="admin-card">
+                        <h4>Salariés</h4>
+                        <div class="form-group" style="display:block; margin-right:0;">
+                            <label>Nouvel agent :</label>
+                            <input type="text" id="new-emp-name" placeholder="Ex: Lucas Bernard" style="width:calc(100% - 15px); margin-bottom: 5px;">
+                            <select id="new-emp-type" style="width: 100%; margin-bottom: 5px;">
+                                <option value="permanent">Personnel Permanent</option>
+                                <option value="saisonnier_morzine">Saisonnier Morzine</option>
+                                <option value="saisonnier_avoriaz">Saisonnier Avoriaz</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary" onclick="addEmployee()" style="width:100%; margin-bottom:8px;">Ajouter</button>
+                        <p style="font-size: 10px; color:#666; margin:0;">💡 Cliquez sur le nom d'un agent dans le tableau pour le renommer.</p>
                     </div>
-                    <button class="btn btn-admin" style="width:100%; font-size:11px; padding:6px;" onclick="updateAdminPassword()">Changer le code 🔑</button>
+
+                    <div class="admin-card">
+                        <h4>Gestion des Activités & Couleurs</h4>
+                        <div style="display: flex; gap: 4px; margin-bottom: 8px; border-bottom: 1px dashed var(--border-color); padding-bottom: 8px;">
+                            <input type="text" id="new-status-code" placeholder="Code" style="width: 45px; text-transform: uppercase;">
+                            <input type="color" id="new-status-color" value="#e0e0e0" style="width:25px; height:25px; padding:0;">
+                            <button class="btn btn-primary" style="padding:2px 8px; font-size:11px;" onclick="addCustomStatus()">Créer</button>
+                        </div>
+                        <div class="status-management-list" id="custom-status-mgmt-list"></div>
+                    </div>
+                    
+                    <div class="admin-card">
+                        <h4>Routine Hebdomadaire</h4>
+                        <div class="form-group" style="margin-bottom:5px;">
+                            <label>Appliquer à :</label>
+                            <select id="template-employee-select"></select>
+                        </div>
+                        <div class="week-template-grid" id="week-template-selectors"></div>
+                        <button class="btn btn-success" onclick="applyWeekTemplate()" style="width: 100%; font-size:11px;">Déployer la routine</button>
+                    </div>
+
+                    <div class="admin-card" style="background-color: var(--bg-light); border: 1px dashed var(--admin-color);">
+                        <h4>Sécurité Admin</h4>
+                        <div class="form-group" style="display:block; margin-right:0;">
+                            <label>Nouveau code secret :</label>
+                            <input type="password" id="change-password-input" placeholder="Nouveau code">
+                        </div>
+                        <button class="btn btn-admin" style="width:100%; font-size:11px; padding:6px;" onclick="updateAdminPassword()">Changer le code 🔑</button>
+                    </div>
                 </div>
             </div>
+
+            <!-- CONTENU TAB 2 : GESTION DES HORAIRES PAR PLAGES ET EXPORT PDF -->
+            <div id="tab-hours" class="admin-tab-content">
+                <div class="admin-card" style="background: var(--card-bg); border: 1px solid var(--border-color);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h4 style="color: var(--navy-dark); font-size: 15px; margin:0;">⏱️ Définition des Horaires Journaliers (Compatible Nuit)</h4>
+                        <button class="btn btn-print" onclick="exportHoursToPDF()">Exporter en PDF (Horaires) 📄</button>
+                    </div>
+                    <p style="font-size: 11px; color: #666; margin-top:0;">Saisissez les heures au format <b>HH:MM</b>. Pour un poste de nuit franchissant minuit (ex: 21:00 à 05:00), le calcul se fait automatiquement sur le lendemain.</p>
+                    
+                    <div class="table-container" style="margin-top: 10px; max-height: 500px;">
+                        <table id="admin-hours-table" style="min-width: auto; font-size: 11px;">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left; min-width: 130px;">Salarié Actif</th>
+                                    <th>Jour</th>
+                                    <th>Matin / Début (Début - Fin)</th>
+                                    <th>Heures 1</th>
+                                    <th>Après-midi / Nuit (Début - Fin)</th>
+                                    <th>Heures 2</th>
+                                    <th style="background-color: #28a745; color: white;">Total Jour</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-hours-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -414,11 +480,14 @@
         let employeeTypes = {}; 
         let employeeArchiveDates = {}; 
         let globalYearlyData = {}; 
+        let employeeDetailedHours = {}; 
         let adminPassword = "admin123";
 
         const monthNamesFr = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
         const dayLabelsMap = ["dim", "lun", "mar", "mer", "jeu", "ven", "sam"];
         const weekDaysEng = ["lun", "mar", "mer", "jeu", "ven", "sam", "dim"];
+        const weekDaysLabelsFull = { lun: "Lundi", mar: "Mardi", mer: "Mercredi", jeu: "Jeudi", ven: "Vendredi", sam: "Samedi", dim: "Dimanche" };
+        
         let currentYear = 2026; 
         let monthsMeta = [];
         let currentMonthId = new Date().getMonth(); 
@@ -441,6 +510,7 @@
                 await fetchGlobalConfig();
                 await fetchCustomStatuses();
                 await fetchEmployees();
+                await fetchDetailedHours();
                 await loadYearDataFromSupabase();
             } catch(e) {
                 console.error("Erreur critique d'initialisation:", e);
@@ -458,6 +528,13 @@
                 document.documentElement.setAttribute('data-theme', 'dark');
                 localStorage.setItem('theme', 'dark');
             }
+        }
+
+        function switchAdminTab(tabId, btnElement) {
+            document.querySelectorAll('.admin-tab-content').forEach(el => el.classList.remove('active-tab'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active-tab');
+            btnElement.classList.add('active');
         }
 
         function buildMonthsMeta(year) {
@@ -595,6 +672,259 @@
             }
         }
 
+        async function fetchDetailedHours() {
+            const { data, error } = await supabaseClient.from('employee_detailed_hours').select('*');
+            if (error) { 
+                console.log("Table employee_detailed_hours potentiellement absente, initialisation vide."); 
+                return; 
+            }
+            employeeDetailedHours = {};
+            if (data) {
+                data.forEach(row => {
+                    if (!employeeDetailedHours[row.employee_name]) {
+                        employeeDetailedHours[row.employee_name] = {};
+                    }
+                    employeeDetailedHours[row.employee_name][row.day_key] = {
+                        m_start: row.m_start || "",
+                        m_end: row.m_end || "",
+                        am_start: row.am_start || "",
+                        am_end: row.am_end || ""
+                    };
+                });
+            }
+        }
+
+        // CALCUL GÉRANT LE TRAVAIL DE NUIT (franchissement de minuit)
+        function calculateDiffHours(startStr, endStr) {
+            if (!startStr || !endStr) return 0;
+            let [sh, sm] = startStr.split(':').map(Number);
+            let [eh, em] = endStr.split(':').map(Number);
+            if (isNaN(sh) || isNaN(sm) || isNaN(eh) || isNaN(em)) return 0;
+            let startMin = sh * 60 + sm;
+            let endMin = eh * 60 + em;
+            
+            // Si l'heure de fin est inférieure ou égale à l'heure de début, c'est un poste de nuit (lendemain)
+            if (endMin <= startMin) {
+                endMin += 24 * 60;
+            }
+
+            let diff = (endMin - startMin) / 60;
+            return diff > 0 ? diff : 0;
+        }
+
+        async function saveDetailedHourChange(empName, dayKey) {
+            if (!employeeDetailedHours[empName]) employeeDetailedHours[empName] = {};
+            if (!employeeDetailedHours[empName][dayKey]) {
+                employeeDetailedHours[empName][dayKey] = { m_start: "", m_end: "", am_start: "", am_end: "" };
+            }
+
+            let mStart = document.getElementById(`m_start_${empName}_${dayKey}`).value;
+            let mEnd = document.getElementById(`m_end_${empName}_${dayKey}`).value;
+            let amStart = document.getElementById(`am_start_${empName}_${dayKey}`).value;
+            let amEnd = document.getElementById(`am_end_${empName}_${dayKey}`).value;
+
+            employeeDetailedHours[empName][dayKey] = { m_start: mStart, m_end: mEnd, am_start: amStart, am_end: amEnd };
+
+            let mHours = calculateDiffHours(mStart, mEnd);
+            let amHours = calculateDiffHours(amStart, amEnd);
+            let totalDay = mHours + amHours;
+
+            document.getElementById(`m_hours_${empName}_${dayKey}`).textContent = mHours > 0 ? mHours.toFixed(2).replace(/\.00$/, '') + 'h' : '-';
+            document.getElementById(`am_hours_${empName}_${dayKey}`).textContent = amHours > 0 ? amHours.toFixed(2).replace(/\.00$/, '') + 'h' : '-';
+            document.getElementById(`day_total_${empName}_${dayKey}`).textContent = totalDay > 0 ? totalDay.toFixed(2).replace(/\.00$/, '') + 'h' : '-';
+
+            updateOverallWeeklyTotal(empName);
+
+            const payload = {
+                employee_name: empName,
+                day_key: dayKey,
+                m_start: mStart,
+                m_end: mEnd,
+                am_start: amStart,
+                am_end: amEnd
+            };
+
+            const { error } = await supabaseClient
+                .from('employee_detailed_hours')
+                .upsert(payload, { onConflict: 'employee_name,day_key' });
+
+            if (error) {
+                console.error("Erreur sauvegarde horaires détaillés:", error.message);
+            }
+        }
+
+        function updateOverallWeeklyTotal(empName) {
+            let weekTotal = 0;
+            weekDaysEng.forEach(d => {
+                let dayData = employeeDetailedHours[empName]?.[d];
+                if (dayData) {
+                    weekTotal += calculateDiffHours(dayData.m_start, dayData.m_end);
+                    weekTotal += calculateDiffHours(dayData.am_start, dayData.am_end);
+                }
+            });
+            let summaryEl = document.getElementById(`weekly_total_${empName.replace(/\s+/g, '_')}`);
+            if (summaryEl) {
+                summaryEl.textContent = weekTotal > 0 ? weekTotal.toFixed(2).replace(/\.00$/, '') + ' heures / semaine' : '0 heure';
+            }
+        }
+
+        function isEmployeeArchived(emp) {
+            const archiveStr = employeeArchiveDates[emp];
+            if (!archiveStr) return false;
+            return true;
+        }
+
+        function renderAdminHoursTable() {
+            const tbody = document.getElementById('admin-hours-tbody');
+            if (!tbody) return;
+            tbody.innerHTML = "";
+
+            Object.keys(employeeTypes).forEach(emp => {
+                if (isEmployeeArchived(emp)) return;
+
+                if (!employeeDetailedHours[emp]) {
+                    employeeDetailedHours[emp] = {
+                        lun: { m_start: "08:00", m_end: "12:00", am_start: "14:00", am_end: "18:00" },
+                        mar: { m_start: "08:00", m_end: "12:00", am_start: "14:00", am_end: "18:00" },
+                        mer: { m_start: "08:00", m_end: "12:00", am_start: "14:00", am_end: "18:00" },
+                        jeu: { m_start: "08:00", m_end: "12:00", am_start: "14:00", am_end: "18:00" },
+                        ven: { m_start: "08:00", m_end: "12:00", am_start: "14:00", am_end: "18:00" },
+                        sam: { m_start: "", m_end: "", am_start: "", am_end: "" },
+                        dim: { m_start: "", m_end: "", am_start: "", am_end: "" }
+                    };
+                }
+
+                const safeName = emp.replace(/\s+/g, '_');
+                let firstRow = true;
+                let dayCount = weekDaysEng.length;
+
+                weekDaysEng.forEach((dKey) => {
+                    let dData = employeeDetailedHours[emp][dKey] || { m_start: "", m_end: "", am_start: "", am_end: "" };
+                    let mH = calculateDiffHours(dData.m_start, dData.m_end);
+                    let amH = calculateDiffHours(dData.am_start, dData.am_end);
+                    let dTot = mH + amH;
+
+                    let tr = document.createElement('tr');
+                    let nameCellHtml = "";
+                    if (firstRow) {
+                        nameCellHtml = `<td rowspan="${dayCount}" style="font-weight: bold; vertical-align: middle; background: var(--card-bg); border-right: 2px solid var(--navy-dark);">
+                            ${emp}<br>
+                            <span id="weekly_total_${safeName}" style="color: #28a745; font-size: 10px; display:inline-block; margin-top:4px;">0 heure</span>
+                        </td>`;
+                        firstRow = false;
+                    }
+
+                    tr.innerHTML = `
+                        ${nameCellHtml}
+                        <td style="font-weight: bold; background: var(--bg-light);">${weekDaysLabelsFull[dKey]}</td>
+                        <td>
+                            <input type="time" id="m_start_${emp}_${dKey}" value="${dData.m_start}" style="width:65px;" onchange="saveDetailedHourChange('${emp}', '${dKey}')"> à 
+                            <input type="time" id="m_end_${emp}_${dKey}" value="${dData.m_end}" style="width:65px;" onchange="saveDetailedHourChange('${emp}', '${dKey}')">
+                        </td>
+                        <td id="m_hours_${emp}_${dKey}" style="font-weight:bold;">${mH > 0 ? mH.toFixed(2).replace(/\.00$/, '') + 'h' : '-'}</td>
+                        <td>
+                            <input type="time" id="am_start_${emp}_${dKey}" value="${dData.am_start}" style="width:65px;" onchange="saveDetailedHourChange('${emp}', '${dKey}')"> à 
+                            <input type="time" id="am_end_${emp}_${dKey}" value="${dData.am_end}" style="width:65px;" onchange="saveDetailedHourChange('${emp}', '${dKey}')">
+                        </td>
+                        <td id="am_hours_${emp}_${dKey}" style="font-weight:bold;">${amH > 0 ? amH.toFixed(2).replace(/\.00$/, '') + 'h' : '-'}</td>
+                        <td id="day_total_${emp}_${dKey}" style="font-weight: bold; background-color: var(--total-bg); color: var(--navy-dark);">${dTot > 0 ? dTot.toFixed(2).replace(/\.00$/, '') + 'h' : '-'}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                updateOverallWeeklyTotal(emp);
+            });
+        }
+
+        function exportHoursToPDF() {
+            let activeEmps = Object.keys(employeeTypes).filter(emp => !isEmployeeArchived(emp));
+            if (activeEmps.length === 0) {
+                alert("Aucun agent actif à exporter.");
+                return;
+            }
+
+            let printWin = window.open('', '_blank');
+            let docTitle = document.getElementById('document-title').value || "Planning d'Équipe Global";
+
+            let html = `
+                <!DOCTYPE html>
+                <html lang="fr">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Rapport des Horaires - ${docTitle}</title>
+                    <style>
+                        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; color: #333; }
+                        h2 { color: #1B365D; text-align: center; margin-bottom: 5px; }
+                        .subtitle { text-align: center; font-size: 13px; color: #666; margin-bottom: 25px; }
+                        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; page-break-inside: avoid; }
+                        th, td { border: 1px solid #ccc; padding: 6px 10px; text-align: center; font-size: 11px; }
+                        th { background-color: #1B365D; color: white; }
+                        .emp-header { background-color: #F0F4F8; font-weight: bold; text-align: left; font-size: 13px; }
+                        @page { size: A4 portrait; margin: 15mm; }
+                    </style>
+                </head>
+                <body>
+                    <h2>RÉCAPITULATIF DES HORAIRES HEBDOMADAIRES</h2>
+                    <div class="subtitle">${docTitle} - Année ${currentYear}</div>
+            `;
+
+            activeEmps.forEach(emp => {
+                let weekTotal = 0;
+                let rowsHtml = "";
+
+                weekDaysEng.forEach(dKey => {
+                    let dData = employeeDetailedHours[emp]?.[dKey] || { m_start: "", m_end: "", am_start: "", am_end: "" };
+                    let mH = calculateDiffHours(dData.m_start, dData.m_end);
+                    let amH = calculateDiffHours(dData.am_start, dData.am_end);
+                    let dTot = mH + amH;
+                    weekTotal += dTot;
+
+                    rowsHtml += `
+                        <tr>
+                            <td style="font-weight:bold; text-align:left;">${weekDaysLabelsFull[dKey]}</td>
+                            <td>${dData.m_start && dData.m_end ? dData.m_start + ' - ' + dData.m_end : '-'}</td>
+                            <td>${mH > 0 ? mH.toFixed(2).replace(/\.00$/, '') + 'h' : '-'}</td>
+                            <td>${dData.am_start && dData.am_end ? dData.am_start + ' - ' + dData.am_end : '-'}</td>
+                            <td>${amH > 0 ? amH.toFixed(2).replace(/\.00$/, '') + 'h' : '-'}</td>
+                            <td style="font-weight:bold;">${dTot > 0 ? dTot.toFixed(2).replace(/\.00$/, '') + 'h' : '-'}</td>
+                        </tr>
+                    `;
+                });
+
+                html += `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th colspan="6" class="emp-header">Salarié : ${emp} &nbsp;&nbsp;|&nbsp;&nbsp; Total Semaine : ${weekTotal.toFixed(2).replace(/\.00$/, '')} heures</th>
+                            </tr>
+                            <tr>
+                                <th style="text-align:left; width:110px;">Jour</th>
+                                <th>Plage 1</th>
+                                <th>Heures 1</th>
+                                <th>Plage 2</th>
+                                <th>Heures 2</th>
+                                <th>Total Jour</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rowsHtml}
+                        </tbody>
+                    </table>
+                `;
+            });
+
+            html += `
+                <script>
+                    window.onload = function() { window.print(); }
+                <\/script>
+                </body>
+                </html>
+            `;
+
+            printWin.document.write(html);
+            printWin.document.close();
+        }
+
         async function addEmployee() {
             const nameInput = document.getElementById('new-emp-name');
             const typeInput = document.getElementById('new-emp-type');
@@ -617,34 +947,16 @@
             if(newName && newName.trim() !== "" && newName.trim() !== oldName) {
                 newName = newName.trim();
                 
-                // 1. Mettre à jour le nom dans la table des employés
-                const { error: empError } = await supabaseClient
-                    .from('employees')
-                    .update({ name: newName })
-                    .eq('name', oldName);
+                await supabaseClient.from('employees').update({ name: newName }).eq('name', oldName);
+                await supabaseClient.from('schedules').update({ employee_name: newName }).eq('employee_name', oldName);
+                await supabaseClient.from('employee_detailed_hours').update({ employee_name: newName }).eq('employee_name', oldName);
 
-                if(empError) {
-                    alert("Erreur renommage employé: " + empError.message);
-                    return;
-                }
-
-                // 2. Mettre à jour le nom dans tous les plannings enregistrés (schedules) pour ne rien perdre
-                const { error: schedError } = await supabaseClient
-                    .from('schedules')
-                    .update({ employee_name: newName })
-                    .eq('employee_name', oldName);
-
-                if(schedError) {
-                    alert("Erreur mise à jour des plannings associés: " + schedError.message);
-                    return;
-                }
-
-                // 3. Recharger les données et rafraîchir l'affichage
                 await fetchEmployees();
+                await fetchDetailedHours();
                 await loadYearDataFromSupabase();
                 refreshUI();
                 
-                alert(`✅ ${oldName} a été renommé en ${newName} et tout son planning a été réattribué avec succès !`);
+                alert(`✅ ${oldName} a été renommé en ${newName} avec succès !`);
             }
         }
 
@@ -663,14 +975,12 @@
 
         async function deleteEmployee(name) {
             if (confirm(`DANGER : Supprimer définitivement ${name} ET TOUT SON HISTORIQUE de la base de données ?`)) {
-                const { error } = await supabaseClient.from('employees').delete().eq('name', name);
-                if(!error) {
-                    await fetchEmployees();
-                    await loadYearDataFromSupabase();
-                    refreshUI();
-                } else {
-                    alert("Erreur suppression agent: " + error.message);
-                }
+                await supabaseClient.from('employees').delete().eq('name', name);
+                await supabaseClient.from('employee_detailed_hours').delete().eq('employee_name', name);
+                await fetchEmployees();
+                await fetchDetailedHours();
+                await loadYearDataFromSupabase();
+                refreshUI();
             }
         }
 
@@ -686,7 +996,6 @@
                 });
             });
 
-            // Chargement paginé pour contourner la limite par défaut de 1000 lignes de Supabase
             let allData = [];
             let pageSize = 1000;
             let from = 0;
@@ -699,18 +1008,12 @@
                     .eq('year', currentYear)
                     .range(from, from + pageSize - 1);
 
-                if (error) {
-                    console.error("Erreur de chargement des schedules:", error);
-                    break;
-                }
+                if (error) { console.error("Erreur de chargement des schedules:", error); break; }
 
                 if (data && data.length > 0) {
                     allData = allData.concat(data);
-                    if (data.length < pageSize) {
-                        hasMore = false;
-                    } else {
-                        from += pageSize;
-                    }
+                    if (data.length < pageSize) hasMore = false;
+                    else from += pageSize;
                 } else {
                     hasMore = false;
                 }
@@ -752,7 +1055,6 @@
                 astreinte: updateObj.astreinte !== undefined ? updateObj.astreinte : currentData.astreinte
             };
 
-            // Mise à jour immédiate de la mémoire locale
             globalYearlyData[selectedMonth][emp][day] = {
                 m: payload.m,
                 am: payload.am,
@@ -798,6 +1100,7 @@
             renderTable();
             if(isAdmin) {
                 renderYearlySummaryTable();
+                renderAdminHoursTable();
             }
         }
 
@@ -1335,6 +1638,7 @@
                 badge.className = "badge-mode mode-edit";
                 renderTable();
                 renderYearlySummaryTable();
+                renderAdminHoursTable();
             } else {
                 alert("Code secret incorrect !");
             }
