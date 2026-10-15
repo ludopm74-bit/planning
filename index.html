@@ -14,20 +14,38 @@
             --border-color: #C0C0C0;
             --admin-color: #C00000;
             --astreinte-color: #FF0000;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --total-bg: #EAEEF3;
         }
+
+        [data-theme="dark"] {
+            --navy-dark: #0f1d32;
+            --navy-light: #162a45;
+            --accent-blue: #3a75bc;
+            --bg-light: #121820;
+            --border-color: #334155;
+            --admin-color: #e63946;
+            --astreinte-color: #ff4d4d;
+            --card-bg: #1e293b;
+            --text-color: #f1f5f9;
+            --total-bg: #273548;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg-light);
             margin: 0;
             padding: 20px;
-            color: #333;
+            color: var(--text-color);
             user-select: none;
+            transition: background-color 0.3s, color 0.3s;
         }
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: white;
+            background: var(--card-bg);
             padding: 15px 25px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
@@ -38,7 +56,7 @@
             font-size: 24px;
             font-weight: bold;
             color: var(--navy-dark);
-            border: 1px dashed #ccc;
+            border: 1px dashed var(--border-color);
             background: transparent;
             padding: 5px;
             width: 400px;
@@ -63,13 +81,12 @@
         .btn-primary:hover { background-color: #357ABD; }
         .btn-secondary { background-color: #6c757d; color: white; }
         .btn-success { background-color: #28a745; color: white; }
-        .btn-save { background-color: #ff9800; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
         .btn-print { background-color: #00838f; color: white; }
         .btn-print:hover { background-color: #005662; }
 
         #admin-panel {
             display: none;
-            background: #fff3f3;
+            background: var(--card-bg);
             border: 2px solid var(--admin-color);
             padding: 20px;
             border-radius: 8px;
@@ -84,12 +101,12 @@
             margin-top: 15px;
         }
         .admin-card {
-            background: white;
+            background: var(--card-bg);
             padding: 15px;
             border-radius: 6px;
-            border: 1px solid #D3D3D3;
+            border: 1px solid var(--border-color);
         }
-        .admin-card h4 { margin-top: 0; color: var(--navy-dark); border-bottom: 1px solid #eee; padding-bottom: 5px;}
+        .admin-card h4 { margin-top: 0; color: var(--text-color); border-bottom: 1px solid var(--border-color); padding-bottom: 5px;}
 
         .status-management-list {
             max-height: 180px;
@@ -103,16 +120,16 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background: #f8f9fa;
+            background: var(--bg-light);
             padding: 4px 8px;
             border-radius: 4px;
             font-size: 11px;
-            border: 1px solid #e0e0e0;
+            border: 1px solid var(--border-color);
         }
-        .status-row-item input[type="color"] { border: none; width: 20px; height: 20px; padding: 0; cursor: pointer; }
+        .status-row-item input[type="color"] { border: none; width: 20px; height: 20px; padding: 0; cursor: pointer; background: transparent; }
 
         .search-bar-container {
-            background: white;
+            background: var(--card-bg);
             padding: 12px 20px;
             border-radius: 8px;
             margin-bottom: 20px;
@@ -121,20 +138,20 @@
             align-items: center;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
-        .search-input { padding: 8px 12px; border: 1px solid #D3D3D3; border-radius: 4px; }
-        .month-select-main { padding: 8px 16px; font-size: 14px; font-weight: bold; border-radius: 4px; border: 2px solid var(--navy-dark); color: var(--navy-dark); background: white; cursor: pointer; }
+        .search-input { padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--card-bg); color: var(--text-color); }
+        .month-select-main { padding: 8px 16px; font-size: 14px; font-weight: bold; border-radius: 4px; border: 2px solid var(--navy-dark); color: var(--navy-dark); background: var(--card-bg); cursor: pointer; }
 
         .form-group { display: inline-block; margin-right: 15px; margin-bottom: 10px; }
         .form-group label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; }
-        .form-group input, .form-group select { padding: 6px; border: 1px solid #D3D3D3; border-radius: 4px; }
+        .form-group input, .form-group select { padding: 6px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--card-bg); color: var(--text-color); }
 
         .badge-mode { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; display: inline-block; }
         .mode-view { background-color: #E2F0D9; color: #385723; }
         .mode-edit { background-color: #FCE4D6; color: #C65911; border: 1px dashed var(--admin-color); }
 
-        .legend { display: flex; gap: 10px; margin-bottom: 25px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-wrap: wrap; align-items: center; }
+        .legend { display: flex; gap: 10px; margin-bottom: 25px; background: var(--card-bg); padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-wrap: wrap; align-items: center; }
         .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: bold; }
-        .badge { padding: 4px 8px; border-radius: 4px; text-align: center; min-width: 35px; color: #000; border: 1px solid #ccc; font-size: 11px; font-weight: bold; background-color: #fff; }
+        .badge { padding: 4px 8px; border-radius: 4px; text-align: center; min-width: 35px; color: #000; border: 1px solid var(--border-color); font-size: 11px; font-weight: bold; background-color: #fff; }
 
         .day-cell { cursor: default; position: relative; padding: 0 !important; height: 40px; min-width: 44px; vertical-align: middle; box-sizing: border-box; transition: all 0.1s; }
         .mode-admin-active .day-cell { cursor: cell; }
@@ -149,28 +166,31 @@
         .day-cell.selecting .cell-split { background-color: #B4D5FE !important; color: transparent !important; }
         
         .cell-container { display: flex; flex-direction: column; width: 100%; height: 100%; }
-        .cell-split { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; background-color: transparent; color: #333; }
-        .cell-split.split-top { border-bottom: 1px dashed rgba(0,0,0,0.1); }
+        .cell-split { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; background-color: transparent; color: var(--text-color); }
+        .cell-split.split-top { border-bottom: 1px dashed var(--border-color); }
 
-        .section-table-title { color: var(--navy-dark); margin: 25px 0 10px 0; border-bottom: 2px solid var(--navy-dark); padding-bottom: 5px; font-size: 18px; }
+        .section-table-title { color: var(--text-color); margin: 25px 0 10px 0; border-bottom: 2px solid var(--navy-dark); padding-bottom: 5px; font-size: 18px; }
 
-        .table-container { overflow-x: auto; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px;}
+        .table-container { overflow-x: auto; background: var(--card-bg); border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px;}
         table { border-collapse: collapse; width: 100%; min-width: 1800px; }
         th, td { border: 1px solid var(--border-color); padding: 6px; text-align: center; font-size: 12px; }
         th { background-color: var(--navy-dark); color: white; font-weight: 600; }
         .th-day-name { font-size: 10px; background-color: #2c4d75; font-weight: normal;}
         
-        .emp-name { font-weight: bold; text-align: left; background-color: #FFF; min-width: 160px; position: sticky; left: 0; z-index: 5; box-shadow: 2px 0 5px rgba(0,0,0,0.05); }
-        .mode-admin-active .emp-name { cursor: pointer; background-color: #fff8f8; }
-        .mode-admin-active .emp-name:hover { background-color: #ffebeb; text-decoration: underline; }
+        .emp-name { font-weight: bold; text-align: left; background-color: var(--card-bg); min-width: 160px; position: sticky; left: 0; z-index: 5; box-shadow: 2px 0 5px rgba(0,0,0,0.05); }
+        .mode-admin-active .emp-name { cursor: pointer; background-color: var(--card-bg); }
+        .mode-admin-active .emp-name:hover { opacity: 0.8; text-decoration: underline; }
 
-        .total-cell { background-color: #EAEEF3; font-weight: bold; font-size: 11px; min-width: 35px; }
+        .total-cell { background-color: var(--total-bg); font-weight: bold; font-size: 11px; min-width: 35px; }
+        .astreinte-total-cell { background-color: #ffcccc; color: #990000; font-weight: bold; font-size: 11px; min-width: 45px; }
         .action-col { display: none; }
+
+        #admin-only-yearly-section { display: none; }
 
         #bulk-menu {
             display: none;
             position: absolute;
-            background: white;
+            background: var(--card-bg);
             border: 2px solid var(--navy-dark);
             box-shadow: 0 6px 20px rgba(0,0,0,0.25);
             padding: 12px;
@@ -178,21 +198,21 @@
             z-index: 1000;
             width: 280px;
         }
-        .popover-title { font-size: 11px; font-weight: bold; color: var(--navy-dark); margin-bottom: 6px; text-align: center; text-transform: uppercase;}
-        .radio-switch { display: flex; background: #eee; padding: 2px; border-radius: 4px; margin-bottom: 10px; gap: 2px;}
-        .radio-switch label { flex: 1; text-align: center; font-size: 10px; font-weight: bold; padding: 5px; cursor: pointer; border-radius: 3px;}
+        .popover-title { font-size: 11px; font-weight: bold; color: var(--text-color); margin-bottom: 6px; text-align: center; text-transform: uppercase;}
+        .radio-switch { display: flex; background: var(--bg-light); padding: 2px; border-radius: 4px; margin-bottom: 10px; gap: 2px;}
+        .radio-switch label { flex: 1; text-align: center; font-size: 10px; font-weight: bold; padding: 5px; cursor: pointer; border-radius: 3px; color: var(--text-color); }
         .radio-switch input { display: none; }
         .radio-switch input:checked + label { background: var(--accent-blue); color: white; }
         
         .status-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
-        .status-grid button { padding: 6px; font-size: 11px; font-weight: bold; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; background: white; }
-        .astreinte-zone { border-top: 1px solid #eee; margin-top: 8px; padding-top: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+        .status-grid button { padding: 6px; font-size: 11px; font-weight: bold; border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer; background: var(--card-bg); color: var(--text-color); }
+        .astreinte-zone { border-top: 1px solid var(--border-color); margin-top: 8px; padding-top: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
 
         .print-only-title { display: none; }
 
         @media print {
-            body { background: white; padding: 0; margin: 0; }
-            header, #admin-panel, .search-bar-container, #bulk-menu, .action-col, .btn { display: none !important; }
+            body { background: white; padding: 0; margin: 0; color: black; }
+            header, #admin-panel, .search-bar-container, #bulk-menu, .action-col, .btn, #admin-only-yearly-section { display: none !important; }
             .print-only-title { display: block !important; text-align: center; color: var(--navy-dark); font-size: 20px; font-weight: bold; margin-bottom: 15px; }
             .legend { display: flex !important; box-shadow: none !important; border: 1px solid #ccc; margin-top: 20px; page-break-inside: avoid; }
             .table-container { overflow: visible !important; box-shadow: none !important; margin-bottom: 10px !important;}
@@ -215,7 +235,8 @@
                 <span id="current-mode-badge" class="badge-mode mode-view">Mode Consultation 👁️</span>
             </div>
         </div>
-        <div>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <button class="btn btn-secondary" onclick="toggleDarkMode()" title="Changer le thème">🌙 / ☀️</button>
             <button id="auth-btn" class="btn btn-admin" onclick="toggleAdminAuth()">Connexion Admin 🔒</button>
         </div>
     </header>
@@ -246,7 +267,8 @@
                         <input type="text" id="new-emp-name" placeholder="Ex: Lucas Bernard" style="width:calc(100% - 15px); margin-bottom: 5px;">
                         <select id="new-emp-type" style="width: 100%; margin-bottom: 5px;">
                             <option value="permanent">Personnel Permanent</option>
-                            <option value="saisonnier">Personnel Saisonnier</option>
+                            <option value="saisonnier_morzine">Saisonnier Morzine</option>
+                            <option value="saisonnier_avoriaz">Saisonnier Avoriaz</option>
                         </select>
                     </div>
                     <button class="btn btn-primary" onclick="addEmployee()" style="width:100%; margin-bottom:8px;">Ajouter</button>
@@ -255,7 +277,7 @@
 
                 <div class="admin-card">
                     <h4>Gestion des Activités & Couleurs</h4>
-                    <div style="display: flex; gap: 4px; margin-bottom: 8px; border-bottom: 1px dashed #eee; padding-bottom: 8px;">
+                    <div style="display: flex; gap: 4px; margin-bottom: 8px; border-bottom: 1px dashed var(--border-color); padding-bottom: 8px;">
                         <input type="text" id="new-status-code" placeholder="Code" style="width: 45px; text-transform: uppercase;">
                         <input type="color" id="new-status-color" value="#e0e0e0" style="width:25px; height:25px; padding:0;">
                         <button class="btn btn-primary" style="padding:2px 8px; font-size:11px;" onclick="addCustomStatus()">Créer</button>
@@ -273,7 +295,7 @@
                     <button class="btn btn-success" onclick="applyWeekTemplate()" style="width: 100%; font-size:11px;">Déployer la routine</button>
                 </div>
 
-                <div class="admin-card" style="background-color: #fff9f9; border: 1px dashed var(--admin-color);">
+                <div class="admin-card" style="background-color: var(--bg-light); border: 1px dashed var(--admin-color);">
                     <h4>Sécurité Admin</h4>
                     <div class="form-group" style="display:block; margin-right:0;">
                         <label>Nouveau code secret :</label>
@@ -326,6 +348,7 @@
                     <th rowspan="2" style="position: sticky; left: 0; z-index: 6;">Nom du Salarié</th>
                     <th colspan="31" class="month-title-header">Mois</th>
                     <th colspan="1" class="totaux-main-header">Totaux</th>
+                    <th rowspan="2" class="totaux-astreinte-header" style="background-color: #b30000; color: white;">Total Astreintes</th>
                     <th rowspan="2" class="action-col">Actions</th>
                 </tr>
                 <tr class="header-days-row"></tr>
@@ -334,33 +357,63 @@
         </table>
     </div>
 
-    <h3 class="section-table-title">Personnel Saisonnier</h3>
+    <h3 class="section-table-title">Personnel Saisonnier Morzine</h3>
     <div class="table-container">
-        <table id="planning-table-sais">
+        <table id="planning-table-sais-morzine">
             <thead>
                 <tr>
                     <th rowspan="2" style="position: sticky; left: 0; z-index: 6;">Nom du Salarié</th>
                     <th colspan="31" class="month-title-header">Mois</th>
                     <th colspan="1" class="totaux-main-header">Totaux</th>
+                    <th rowspan="2" class="totaux-astreinte-header" style="background-color: #b30000; color: white;">Total Astreintes</th>
                     <th rowspan="2" class="action-col">Actions</th>
                 </tr>
                 <tr class="header-days-row"></tr>
             </thead>
-            <tbody id="planning-body-sais"></tbody>
+            <tbody id="planning-body-sais-morzine"></tbody>
         </table>
     </div>
 
+    <h3 class="section-table-title">Personnel Saisonnier Avoriaz</h3>
+    <div class="table-container">
+        <table id="planning-table-sais-avoriaz">
+            <thead>
+                <tr>
+                    <th rowspan="2" style="position: sticky; left: 0; z-index: 6;">Nom du Salarié</th>
+                    <th colspan="31" class="month-title-header">Mois</th>
+                    <th colspan="1" class="totaux-main-header">Totaux</th>
+                    <th rowspan="2" class="totaux-astreinte-header" style="background-color: #b30000; color: white;">Total Astreintes</th>
+                    <th rowspan="2" class="action-col">Actions</th>
+                </tr>
+                <tr class="header-days-row"></tr>
+            </thead>
+            <tbody id="planning-body-sais-avoriaz"></tbody>
+        </table>
+    </div>
+
+    <div id="admin-only-yearly-section">
+        <h3 class="section-table-title">Bilan Annuel Global des Activités & Astreintes (Vue Admin)</h3>
+        <div class="table-container">
+            <table id="planning-table-yearly" style="min-width: auto;">
+                <thead>
+                    <tr id="yearly-header-row">
+                        <th style="text-align: left; position: sticky; left: 0; z-index: 6; background-color: var(--navy-dark);">Nom du Salarié</th>
+                    </tr>
+                </thead>
+                <tbody id="planning-body-yearly"></tbody>
+            </table>
+        </div>
+    </div>
+
     <script>
-        // CONFIGURATION SUPABASE CORRIGÉE (sans /rest/v1/ à la fin)
         const SUPABASE_URL = "https://mfbpyrcddvcstqdkyxso.supabase.co"; 
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mYnB5cmNkZHZjc3RxZGt5eHNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MjQ3MzEsImV4cCI6MjA5ODQwMDczMX0.b7TwHQXTlLZcClFAbrOfYiojRI3s8I64ruktKGc0OdI";
         
-        // Initialisation sécurisée du client
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let customStatuses = {};
         let employeeTypes = {}; 
-        let employeeArchiveDates = {}; // Stocke les dates de fin/départ des salariés (ex: "2026-08")
+        let employeeArchiveDates = {}; 
         let globalYearlyData = {}; 
         let adminPassword = "admin123";
 
@@ -377,6 +430,10 @@
         let activeEmployeeRow = null;
 
         window.onload = async function() {
+            if(localStorage.getItem('theme') === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+
             currentYear = parseInt(document.getElementById('global-year-select').value);
             monthsMeta = buildMonthsMeta(currentYear);
             buildMonthSelectOptions();
@@ -388,11 +445,21 @@
                 await loadYearDataFromSupabase();
             } catch(e) {
                 console.error("Erreur critique d'initialisation:", e);
-                alert("Impossible de se connecter à Supabase. Vérifiez la console (F12) et vos politiques RLS.");
+                alert("Impossible de se connecter à Supabase. Vérifiez la console (F12).");
             }
 
             refreshUI();
         };
+
+        function toggleDarkMode() {
+            if(document.documentElement.getAttribute('data-theme') === 'dark') {
+                document.documentElement.removeAttribute('data-theme');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
 
         function buildMonthsMeta(year) {
             let meta = [];
@@ -418,8 +485,6 @@
                 select.appendChild(opt);
             });
         }
-
-        // --- INTERFACES API SUPABASE ---
 
         async function fetchGlobalConfig() {
             const { data, error } = await supabaseClient.from('global_config').select('*');
@@ -555,9 +620,8 @@
         }
 
         async function archiveEmployee(name) {
-            // Ajout de '-01' pour fournir un format YYYY-MM-DD valide à PostgreSQL (type DATE)
             const currentMonthStr = `${currentYear}-${String(currentMonthId + 1).padStart(2, '0')}-01`;
-            if (confirm(`Régler la date de départ de ${name} à la fin de ${monthsMeta[currentMonthId].name} ?\n\nSes plannings passés seront conservés, mais il n'apparaîtra plus sur les mois futurs.`)) {
+            if (confirm(`Régler la date de départ de ${name} à la fin de ${monthsMeta[currentMonthId].name} ?`)) {
                 const { error } = await supabaseClient.from('employees').update({ archive_date: currentMonthStr }).eq('name', name);
                 if(!error) {
                     await fetchEmployees();
@@ -569,7 +633,7 @@
         }
 
         async function deleteEmployee(name) {
-            if (confirm(`DANGER : Supprimer définitivement ${name} ET TOUT SON HISTORIQUE de la base de données ?\n\nSi vous souhaitez simplement qu'il n'apparaisse plus dans le futur tout en conservant ses plannings passés, utilisez plutôt "Archiver (Départ)".`)) {
+            if (confirm(`DANGER : Supprimer définitivement ${name} ET TOUT SON HISTORIQUE de la base de données ?`)) {
                 const { error } = await supabaseClient.from('employees').delete().eq('name', name);
                 if(!error) {
                     await fetchEmployees();
@@ -618,8 +682,6 @@
             if (error) console.error("Erreur sauvegarde cellule:", error.message);
         }
 
-        // --- SYNCHRONISATION UI ---
-
         function syncDocumentTitle() {
             const title = document.getElementById('document-title').value;
             document.title = `${title} - ${currentYear}`;
@@ -647,6 +709,9 @@
             buildAdminStatusManager();
             renderCalendarHeaders();
             renderTable();
+            if(isAdmin) {
+                renderYearlySummaryTable();
+            }
         }
 
         function renderLegend() {
@@ -749,16 +814,22 @@
                 Object.keys(customStatuses).forEach(h => {
                     let th = document.createElement('th'); th.textContent = h; row.appendChild(th);
                 });
+                let thAstreintes = document.createElement('th');
+                thAstreintes.style.backgroundColor = "#b30000";
+                thAstreintes.style.color = "white";
+                thAstreintes.textContent = "Astreintes";
+                row.appendChild(thAstreintes);
+
                 let thAction = document.createElement('th'); thAction.className = "action-col"; thAction.textContent = "Actions"; row.appendChild(thAction);
             });
         }
 
         function isEmployeeVisibleInMonth(emp, year, monthId) {
             const archiveStr = employeeArchiveDates[emp];
-            if (!archiveStr) return true; // Actif sans restriction
+            if (!archiveStr) return true; 
             
             const [archYear, archMonth] = archiveStr.split('-').map(Number);
-            const currentMonthNum = monthId + 1; // 1-12
+            const currentMonthNum = monthId + 1; 
             
             if (year < archYear) return true;
             if (year === archYear && currentMonthNum <= archMonth) return true;
@@ -768,24 +839,27 @@
 
         function renderTable() {
             renderTableBody('planning-body-perm', 'permanent');
-            renderTableBody('planning-body-sais', 'saisonnier');
+            renderTableBody('planning-body-sais-morzine', 'saisonnier_morzine');
+            renderTableBody('planning-body-sais-avoriaz', 'saisonnier_avoriaz');
             
             document.querySelectorAll('.action-col').forEach(el => {
                 el.style.display = isAdmin ? 'table-cell' : 'none';
             });
             updateEmployeeDropdown();
             
-            if(isAdmin) {
-                document.getElementById('planning-table-perm').classList.add('mode-admin-active');
-                document.getElementById('planning-table-sais').classList.add('mode-admin-active');
-            } else {
-                document.getElementById('planning-table-perm').classList.remove('mode-admin-active');
-                document.getElementById('planning-table-sais').classList.remove('mode-admin-active');
-            }
+            const tables = ['planning-table-perm', 'planning-table-sais-morzine', 'planning-table-sais-avoriaz'];
+            tables.forEach(id => {
+                const el = document.getElementById(id);
+                if(el) {
+                    if(isAdmin) el.classList.add('mode-admin-active');
+                    else el.classList.remove('mode-admin-active');
+                }
+            });
         }
 
         function renderTableBody(tbodyId, typeFilter) {
             const tbody = document.getElementById(tbodyId);
+            if(!tbody) return;
             tbody.innerHTML = "";
             const currentMonthMeta = monthsMeta[currentMonthId];
             const monthData = globalYearlyData[currentMonthId] || {};
@@ -844,16 +918,22 @@
                 
                 Object.keys(customStatuses).forEach(h => {
                     let tdTotal = document.createElement('td');
-                    // CORRECTION : Remplacement des espaces par "_" pour éviter l'erreur querySelector
                     const safeEmpClass = emp.replace(/\s+/g, '_');
                     tdTotal.className = `total-cell cell-total-${safeEmpClass}-${h}`;
                     tr.appendChild(tdTotal);
                 });
+
+                // Colonne du total des astreintes pour le mois
+                let tdAstTotal = document.createElement('td');
+                const safeEmpClass = emp.replace(/\s+/g, '_');
+                tdAstTotal.className = `astreinte-total-cell cell-total-astreinte-${safeEmpClass}`;
+                tr.appendChild(tdAstTotal);
+
                 let tdAction = document.createElement('td');
                 tdAction.className = "action-col";
                 tdAction.innerHTML = `
-                    <button class="btn" style="background-color:#ff9800; color:white; padding:2px 4px; font-size:10px; margin-right:2px;" onclick="archiveEmployee('${emp}')" title="Masquer à partir des mois suivants tout en gardant l'historique">Archiver (Départ)</button>
-                    <button class="btn" style="background-color:#dc3545; color:white; padding:2px 4px; font-size:10px;" onclick="deleteEmployee('${emp}')" title="Supprimer définitivement de la BDD">Suppr.</button>
+                    <button class="btn" style="background-color:#ff9800; color:white; padding:2px 4px; font-size:10px; margin-right:2px;" onclick="archiveEmployee('${emp}')">Archiver</button>
+                    <button class="btn" style="background-color:#dc3545; color:white; padding:2px 4px; font-size:10px;" onclick="deleteEmployee('${emp}')">Suppr.</button>
                 `;
                 tr.appendChild(tdAction);
 
@@ -862,21 +942,85 @@
             });
         }
 
+        function renderYearlySummaryTable() {
+            const headerRow = document.getElementById('yearly-header-row');
+            const tbody = document.getElementById('planning-body-yearly');
+            if(!headerRow || !tbody) return;
+            
+            let htmlHeaders = `<th style="text-align: left; position: sticky; left: 0; z-index: 6; background-color: var(--navy-dark); color: white;">Nom du Salarié</th>`;
+            Object.keys(customStatuses).forEach(code => {
+                htmlHeaders += `<th style="background-color: ${customStatuses[code].color}; color: ${customStatuses[code].textColor || '#000'};">${code}</th>`;
+            });
+            htmlHeaders += `<th style="background-color: #b30000; color: white;">Total Astreintes</th>`;
+            headerRow.innerHTML = htmlHeaders;
+
+            tbody.innerHTML = "";
+            let allEmployees = Object.keys(employeeTypes);
+
+            allEmployees.forEach(emp => {
+                let tr = document.createElement('tr');
+                
+                let tdName = document.createElement('td');
+                tdName.className = "emp-name";
+                tdName.textContent = emp;
+                tr.appendChild(tdName);
+
+                let yearlyCounts = {};
+                Object.keys(customStatuses).forEach(code => yearlyCounts[code] = 0);
+                let yearlyAstreintesCount = 0;
+
+                for (let m = 0; m < 12; m++) {
+                    let monthData = globalYearlyData[m] || {};
+                    let empMonthData = monthData[emp];
+                    if (empMonthData) {
+                        let daysInMonth = monthsMeta[m].days;
+                        for (let d = 1; d <= daysInMonth; d++) {
+                            let dayObj = empMonthData[d] || { m: "-", am: "-", astreinte: false };
+                            if (dayObj.m !== "-" && yearlyCounts[dayObj.m] !== undefined) yearlyCounts[dayObj.m] += 0.5;
+                            if (dayObj.am !== "-" && yearlyCounts[dayObj.am] !== undefined) yearlyCounts[dayObj.am] += 0.5;
+                            if (dayObj.astreinte) yearlyAstreintesCount++;
+                        }
+                    }
+                }
+
+                Object.keys(customStatuses).forEach(code => {
+                    let tdVal = document.createElement('td');
+                    tdVal.className = "total-cell";
+                    tdVal.textContent = yearlyCounts[code] > 0 ? yearlyCounts[code] : "-";
+                    tr.appendChild(tdVal);
+                });
+
+                let tdAstVal = document.createElement('td');
+                tdAstVal.className = "astreinte-total-cell";
+                tdAstVal.textContent = yearlyAstreintesCount > 0 ? yearlyAstreintesCount : "-";
+                tr.appendChild(tdAstVal);
+
+                tbody.appendChild(tr);
+            });
+        }
+
         function updateRowTotals(employeeName) {
             const counts = {};
             Object.keys(customStatuses).forEach(s => counts[s] = 0);
+            let astreintesCount = 0;
             const currentMonthMeta = monthsMeta[currentMonthId];
             
             for (let d = 1; d <= currentMonthMeta.days; d++) {
                 let dayObj = globalYearlyData[currentMonthId][employeeName][d] || { m: "-", am: "-", astreinte: false };
                 if (dayObj.m !== "-" && counts[dayObj.m] !== undefined) counts[dayObj.m] += 0.5;
                 if (dayObj.am !== "-" && counts[dayObj.am] !== undefined) counts[dayObj.am] += 0.5;
+                if (dayObj.astreinte) astreintesCount++;
             }
+            
             Object.keys(customStatuses).forEach(h => {
                 const safeEmpClass = employeeName.replace(/\s+/g, '_');
                 let el = document.querySelector(`.cell-total-${safeEmpClass}-${h}`);
                 if(el) el.textContent = counts[h];
             });
+
+            const safeEmpClass = employeeName.replace(/\s+/g, '_');
+            let astEl = document.querySelector(`.cell-total-astreinte-${safeEmpClass}`);
+            if(astEl) astEl.textContent = astreintesCount > 0 ? astreintesCount : "-";
         }
 
         function handleMouseDown(e, employee, day) {
@@ -954,14 +1098,17 @@
             if(row) { row.querySelectorAll('.day-cell').forEach(cell => cell.classList.remove('selecting')); }
             document.getElementById('time-full').checked = true;
             renderTable();
+            if(isAdmin) renderYearlySummaryTable();
             activeEmployeeRow = null;
         }
 
         function filterEmployees() {
             let filter = document.getElementById('search-input').value.toLowerCase();
             document.querySelectorAll('tbody tr').forEach(row => {
-                let name = row.getAttribute('data-employee').toLowerCase();
-                row.style.display = name.includes(filter) ? '' : 'none';
+                let name = row.getAttribute('data-employee');
+                if(name) {
+                    row.style.display = name.toLowerCase().includes(filter) ? '' : 'none';
+                }
             });
         }
 
@@ -1005,6 +1152,7 @@
                     }
                 }
                 renderTable();
+                if(isAdmin) renderYearlySummaryTable();
             }
         }
 
@@ -1016,7 +1164,9 @@
                 headers.push(`Jour ${i} Matin;Jour ${i} AM;Jour ${i} Astreinte`);
             }
             Object.keys(customStatuses).forEach(h => headers.push("Total " + h));
+            headers.push("Total Astreintes");
             csv.push(headers.join(";"));
+            
             const monthData = globalYearlyData[currentMonthId];
             Object.keys(monthData).forEach(emp => {
                 if (!isEmployeeVisibleInMonth(emp, currentYear, currentMonthId)) return;
@@ -1030,6 +1180,10 @@
                     let el = document.querySelector(`.cell-total-${safeEmpClass}-${h}`);
                     row.push(el ? el.textContent : "0");
                 });
+                const safeEmpClass = emp.replace(/\s+/g, '_');
+                let astEl = document.querySelector(`.cell-total-astreinte-${safeEmpClass}`);
+                row.push(astEl ? astEl.textContent : "0");
+
                 csv.push(row.join(";"));
             });
             let csvContent = "data:text/csv;charset=utf-8,\uFEFF" + csv.join("\n");
@@ -1054,10 +1208,13 @@
                 document.getElementById('auth-form').style.display = 'none';
                 document.getElementById('admin-controls').style.display = 'block';
                 
+                document.getElementById('admin-only-yearly-section').style.display = 'block';
+
                 let badge = document.getElementById('current-mode-badge');
                 badge.textContent = "Mode Administration Actif 🔓 Contrôle total Cloud";
                 badge.className = "badge-mode mode-edit";
                 renderTable();
+                renderYearlySummaryTable();
             } else {
                 alert("Code secret incorrect !");
             }
@@ -1071,6 +1228,8 @@
             document.getElementById('admin-panel').style.display = 'none';
             document.getElementById('bulk-menu').style.display = 'none';
             
+            document.getElementById('admin-only-yearly-section').style.display = 'none';
+
             let badge = document.getElementById('current-mode-badge');
             badge.textContent = "Mode Consultation 👁️";
             badge.className = "badge-mode mode-view";
