@@ -616,14 +616,35 @@
             let newName = prompt(`Nouveau nom pour ${oldName} :`, oldName);
             if(newName && newName.trim() !== "" && newName.trim() !== oldName) {
                 newName = newName.trim();
-                const { error } = await supabaseClient.from('employees').update({ name: newName }).eq('name', oldName);
-                if(!error) {
-                    await fetchEmployees();
-                    await loadYearDataFromSupabase();
-                    refreshUI();
-                } else {
-                    alert("Erreur renommage: " + error.message);
+                
+                // 1. Mettre à jour le nom dans la table des employés
+                const { error: empError } = await supabaseClient
+                    .from('employees')
+                    .update({ name: newName })
+                    .eq('name', oldName);
+
+                if(empError) {
+                    alert("Erreur renommage employé: " + empError.message);
+                    return;
                 }
+
+                // 2. Mettre à jour le nom dans tous les plannings enregistrés (schedules) pour ne rien perdre
+                const { error: schedError } = await supabaseClient
+                    .from('schedules')
+                    .update({ employee_name: newName })
+                    .eq('employee_name', oldName);
+
+                if(schedError) {
+                    alert("Erreur mise à jour des plannings associés: " + schedError.message);
+                    return;
+                }
+
+                // 3. Recharger les données et rafraîchir l'affichage
+                await fetchEmployees();
+                await loadYearDataFromSupabase();
+                refreshUI();
+                
+                alert(`✅ ${oldName} a été renommé en ${newName} et tout son planning a été réattribué avec succès !`);
             }
         }
 
