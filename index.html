@@ -844,7 +844,9 @@
                 
                 Object.keys(customStatuses).forEach(h => {
                     let tdTotal = document.createElement('td');
-                    tdTotal.className = `total-cell cell-total-${emp}-${h}`;
+                    // CORRECTION : Remplacement des espaces par "_" pour éviter l'erreur querySelector
+                    const safeEmpClass = emp.replace(/\s+/g, '_');
+                    tdTotal.className = `total-cell cell-total-${safeEmpClass}-${h}`;
                     tr.appendChild(tdTotal);
                 });
                 let tdAction = document.createElement('td');
@@ -871,7 +873,8 @@
                 if (dayObj.am !== "-" && counts[dayObj.am] !== undefined) counts[dayObj.am] += 0.5;
             }
             Object.keys(customStatuses).forEach(h => {
-                let el = document.querySelector(`.cell-total-${employeeName}-${h}`);
+                const safeEmpClass = employeeName.replace(/\s+/g, '_');
+                let el = document.querySelector(`.cell-total-${safeEmpClass}-${h}`);
                 if(el) el.textContent = counts[h];
             });
         }
@@ -1023,7 +1026,8 @@
                     row.push(obj.m); row.push(obj.am); row.push(obj.astreinte ? "OUI" : "NON");
                 }
                 Object.keys(customStatuses).forEach(h => {
-                    let el = document.querySelector(`.cell-total-${emp}-${h}`);
+                    const safeEmpClass = emp.replace(/\s+/g, '_');
+                    let el = document.querySelector(`.cell-total-${safeEmpClass}-${h}`);
                     row.push(el ? el.textContent : "0");
                 });
                 csv.push(row.join(";"));
