@@ -347,7 +347,7 @@
             <div id="tab-hours" class="admin-tab-content">
                 <div class="admin-card" style="background: var(--card-bg); border: 1px solid var(--border-color);">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                        <h4 style="color: var(--navy-dark); font-size: 15px; margin:0;">⏱️ Définition des Horaires Journaliers (Compatible Nuit)</h4>
+                        <h4 style="color: var(--navy-dark); font-size: 15px; margin:0;">⏱️ Définition des Horaires Journaliers (Sauvegardés sur Supabase)</h4>
                         <button class="btn btn-print" onclick="exportHoursToPDF()">Exporter en PDF (Horaires) 📄</button>
                     </div>
                     <p style="font-size: 11px; color: #666; margin-top:0;">Saisissez les heures au format <b>HH:MM</b>. Pour un poste de nuit franchissant minuit (ex: 21:00 à 05:00), le calcul se fait automatiquement sur le lendemain.</p>
@@ -514,7 +514,6 @@
                 await loadYearDataFromSupabase();
             } catch(e) {
                 console.error("Erreur critique d'initialisation:", e);
-                alert("Impossible de se connecter à Supabase. Vérifiez la console (F12).");
             }
 
             refreshUI();
@@ -576,7 +575,7 @@
         async function updateDocumentTitleInSupabase() {
             const val = document.getElementById('document-title').value;
             const { error } = await supabaseClient.from('global_config').upsert({ key: 'doc_title', value: val });
-            if (error) { alert("Erreur lors de la sauvegarde du titre: " + error.message); }
+            if (error) { console.error("Erreur titre: " + error.message); }
             syncDocumentTitle();
         }
 
@@ -673,24 +672,28 @@
         }
 
         async function fetchDetailedHours() {
-            const { data, error } = await supabaseClient.from('employee_detailed_hours').select('*');
-            if (error) { 
-                console.log("Table employee_detailed_hours potentiellement absente, initialisation vide."); 
-                return; 
-            }
-            employeeDetailedHours = {};
-            if (data) {
-                data.forEach(row => {
-                    if (!employeeDetailedHours[row.employee_name]) {
-                        employeeDetailedHours[row.employee_name] = {};
-                    }
-                    employeeDetailedHours[row.employee_name][row.day_key] = {
-                        m_start: row.m_start || "",
-                        m_end: row.m_end || "",
-                        am_start: row.am_start || "",
-                        am_end: row.am_end || ""
-                    };
-                });
+            try {
+                const { data, error } = await supabaseClient.from('employee_detailed_hours').select('*');
+                if (error) { 
+                    console.log("Table employee_detailed_hours non disponible ou vide."); 
+                    return; 
+                }
+                employeeDetailedHours = {};
+                if (data) {
+                    data.forEach(row => {
+                        if (!employeeDetailedHours[row.employee_name]) {
+                            employeeDetailedHours[row.employee_name] = {};
+                        }
+                        employeeDetailedHours[row.employee_name][row.day_key] = {
+                            m_start: row.m_start || "",
+                            m_end: row.m_end || "",
+                            am_start: row.am_start || "",
+                            am_end: row.am_end || ""
+                        };
+                    });
+                }
+            } catch(err) {
+                console.log("Erreur chargement detailed hours:", err);
             }
         }
 
@@ -703,7 +706,6 @@
             let startMin = sh * 60 + sm;
             let endMin = eh * 60 + em;
             
-            // Si l'heure de fin est inférieure ou égale à l'heure de début, c'est un poste de nuit (lendemain)
             if (endMin <= startMin) {
                 endMin += 24 * 60;
             }
@@ -712,6 +714,7 @@
             return diff > 0 ? diff : 0;
         }
 
+        // SYNCHRONISATION AUTOMATIQUE SUR SUPABASE LORS DE LA SAISIE DES HORAIRES
         async function saveDetailedHourChange(empName, dayKey) {
             if (!employeeDetailedHours[empName]) employeeDetailedHours[empName] = {};
             if (!employeeDetailedHours[empName][dayKey]) {
@@ -749,7 +752,7 @@
                 .upsert(payload, { onConflict: 'employee_name,day_key' });
 
             if (error) {
-                console.error("Erreur sauvegarde horaires détaillés:", error.message);
+                console.error("Erreur sauvegarde horaires détaillés sur Supabase:", error.message);
             }
         }
 
@@ -783,15 +786,7 @@
                 if (isEmployeeArchived(emp)) return;
 
                 if (!employeeDetailedHours[emp]) {
-                    employeeDetailedHours[emp] = {
-                        lun: { m_start: "08:00", m_end: "12:00", am_start: "14:00", am_end: "18:00" },
-                        mar: { m_start: "08:00", m_end: "12:00", am_start: "14:00", am_end: "18:00" },
-                        mer: { m_start: "08:00", m_end: "12:00", am_start: "14:00", am_end: "18:00" },
-                        jeu: { m_start: "08:00", m_end: "12:00", am_start: "14:00", am_end: "18:00" },
-                        ven: { m_start: "08:00", m_end: "12:00", am_start: "14:00", am_end: "18:00" },
-                        sam: { m_start: "", m_end: "", am_start: "", am_end: "" },
-                        dim: { m_start: "", m_end: "", am_start: "", am_end: "" }
-                    };
+                    employeeDetailedHours[emp] = {};
                 }
 
                 const safeName = emp.replace(/\s+/g, '_');
@@ -1067,7 +1062,6 @@
 
             if (error) {
                 console.error("Erreur de sauvegarde Supabase :", error.message);
-                alert("⚠️ Erreur lors de la sauvegarde : " + error.message);
             }
         }
 
