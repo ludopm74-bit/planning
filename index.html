@@ -181,6 +181,7 @@
         .mode-admin-active .emp-name { cursor: pointer; background-color: var(--card-bg); }
         .mode-admin-active .emp-name:hover { opacity: 0.8; text-decoration: underline; }
 
+        .total-col { display: none; }
         .total-cell { background-color: var(--total-bg); font-weight: bold; font-size: 11px; min-width: 35px; }
         .astreinte-total-cell { background-color: #ffcccc; color: #990000; font-weight: bold; font-size: 11px; min-width: 45px; }
         .action-col { display: none; }
@@ -347,11 +348,11 @@
                 <tr>
                     <th rowspan="2" style="position: sticky; left: 0; z-index: 6;">Nom du Salarié</th>
                     <th colspan="31" class="month-title-header">Mois</th>
-                    <th colspan="1" class="totaux-main-header">Totaux</th>
-                    <th rowspan="2" class="totaux-astreinte-header" style="background-color: #b30000; color: white;">Total Astreintes</th>
+                    <th colspan="1" class="totaux-main-header total-col">Totaux</th>
+                    <th rowspan="2" class="total-col" style="background-color: #b30000; color: white;">Astreintes</th>
                     <th rowspan="2" class="action-col">Actions</th>
                 </tr>
-                <tr class="header-days-row"></tr>
+                <tr class="header-days-row-perm"></tr>
             </thead>
             <tbody id="planning-body-perm"></tbody>
         </table>
@@ -364,11 +365,10 @@
                 <tr>
                     <th rowspan="2" style="position: sticky; left: 0; z-index: 6;">Nom du Salarié</th>
                     <th colspan="31" class="month-title-header">Mois</th>
-                    <th colspan="1" class="totaux-main-header">Totaux</th>
-                    <th rowspan="2" class="totaux-astreinte-header" style="background-color: #b30000; color: white;">Total Astreintes</th>
+                    <th colspan="1" class="totaux-main-header total-col">Totaux</th>
                     <th rowspan="2" class="action-col">Actions</th>
                 </tr>
-                <tr class="header-days-row"></tr>
+                <tr class="header-days-row-sais-morzine"></tr>
             </thead>
             <tbody id="planning-body-sais-morzine"></tbody>
         </table>
@@ -381,11 +381,10 @@
                 <tr>
                     <th rowspan="2" style="position: sticky; left: 0; z-index: 6;">Nom du Salarié</th>
                     <th colspan="31" class="month-title-header">Mois</th>
-                    <th colspan="1" class="totaux-main-header">Totaux</th>
-                    <th rowspan="2" class="totaux-astreinte-header" style="background-color: #b30000; color: white;">Total Astreintes</th>
+                    <th colspan="1" class="totaux-main-header total-col">Totaux</th>
                     <th rowspan="2" class="action-col">Actions</th>
                 </tr>
-                <tr class="header-days-row"></tr>
+                <tr class="header-days-row-sais-avoriaz"></tr>
             </thead>
             <tbody id="planning-body-sais-avoriaz"></tbody>
         </table>
@@ -529,6 +528,15 @@
                     customStatuses[row.code] = { color: row.color, textColor: row.text_color, label: row.label };
                 });
             }
+            
+            if (!customStatuses['C']) {
+                await supabaseClient.from('custom_statuses').upsert({ code: 'C', color: '#b4d5fe', text_color: '#000000', label: 'Congés' });
+                customStatuses['C'] = { color: '#b4d5fe', textColor: '#000000', label: 'Congés' };
+            }
+            if (!customStatuses['R']) {
+                await supabaseClient.from('custom_statuses').upsert({ code: 'R', color: '#e2efda', text_color: '#000000', label: 'Repos' });
+                customStatuses['R'] = { color: '#e2efda', textColor: '#000000', label: 'Repos' };
+            }
         }
 
         async function addCustomStatus() {
@@ -656,15 +664,45 @@
                     }
                 });
             });
-            const { data, error } = await supabaseClient.from('schedules').select('*').eq('year', currentYear);
-            if (error) { console.error("Erreur schedules:", error); return; }
-            if (data) {
-                data.forEach(row => {
-                    if (globalYearlyData[row.month_id] && globalYearlyData[row.month_id][row.employee_name]) {
-                        globalYearlyData[row.month_id][row.employee_name][row.day] = {
-                            m: row.m,
-                            am: row.am,
-                            astreinte: row.astreinte
+
+            // Chargement paginé pour contourner la limite par défaut de 1000 lignes de Supabase
+            let allData = [];
+            let pageSize = 1000;
+            let from = 0;
+            let hasMore = true;
+
+            while (hasMore) {
+                const { data, error } = await supabaseClient
+                    .from('schedules')
+                    .select('*')
+                    .eq('year', currentYear)
+                    .range(from, from + pageSize - 1);
+
+                if (error) {
+                    console.error("Erreur de chargement des schedules:", error);
+                    break;
+                }
+
+                if (data && data.length > 0) {
+                    allData = allData.concat(data);
+                    if (data.length < pageSize) {
+                        hasMore = false;
+                    } else {
+                        from += pageSize;
+                    }
+                } else {
+                    hasMore = false;
+                }
+            }
+            
+            if (allData.length > 0) {
+                allData.forEach(row => {
+                    const mId = parseInt(row.month_id);
+                    if (globalYearlyData[mId] && globalYearlyData[mId][row.employee_name]) {
+                        globalYearlyData[mId][row.employee_name][row.day] = {
+                            m: row.m || "-",
+                            am: row.am || "-",
+                            astreinte: row.astreinte || false
                         };
                     }
                 });
@@ -672,14 +710,42 @@
         }
 
         async function pushScheduleChanges(emp, day, updateObj) {
-            const { error } = await supabaseClient.from('schedules').upsert({
-                year: currentYear,
-                month_id: currentMonthId,
-                day: day,
-                employee_name: emp,
-                ...updateObj
-            }, { onConflict: 'year,month_id,day,employee_name' });
-            if (error) console.error("Erreur sauvegarde cellule:", error.message);
+            const monthSelectEl = document.getElementById('global-month-select');
+            const selectedMonth = monthSelectEl ? parseInt(monthSelectEl.value) : currentMonthId;
+            
+            if (!globalYearlyData[selectedMonth]) globalYearlyData[selectedMonth] = {};
+            if (!globalYearlyData[selectedMonth][emp]) globalYearlyData[selectedMonth][emp] = {};
+            if (!globalYearlyData[selectedMonth][emp][day]) {
+                globalYearlyData[selectedMonth][emp][day] = { m: "-", am: "-", astreinte: false };
+            }
+            
+            const currentData = globalYearlyData[selectedMonth][emp][day];
+
+            const payload = {
+                year: parseInt(currentYear),
+                month_id: parseInt(selectedMonth),
+                day: parseInt(day),
+                employee_name: String(emp),
+                m: updateObj.m !== undefined ? updateObj.m : currentData.m,
+                am: updateObj.am !== undefined ? updateObj.am : currentData.am,
+                astreinte: updateObj.astreinte !== undefined ? updateObj.astreinte : currentData.astreinte
+            };
+
+            // Mise à jour immédiate de la mémoire locale
+            globalYearlyData[selectedMonth][emp][day] = {
+                m: payload.m,
+                am: payload.am,
+                astreinte: payload.astreinte
+            };
+
+            const { error } = await supabaseClient
+                .from('schedules')
+                .upsert(payload, { onConflict: 'year,month_id,day,employee_name' });
+
+            if (error) {
+                console.error("Erreur de sauvegarde Supabase :", error.message);
+                alert("⚠️ Erreur lors de la sauvegarde : " + error.message);
+            }
         }
 
         function syncDocumentTitle() {
@@ -731,7 +797,7 @@
             });
             let astItem = document.createElement('div');
             astItem.className = "legend-item";
-            astItem.innerHTML = `<span class="badge" style="outline: 3px solid var(--astreinte-color); outline-offset: -3px; background-color: #ffe6e6;">-</span> Astreinte (Contour rouge)`;
+            astItem.innerHTML = `<span class="badge" style="outline: 3px solid var(--astreinte-color); outline-offset: -3px; background-color: #ffe6e6;">-</span> Astreinte (Contour rouge - Permanent uniquement)`;
             container.appendChild(astItem);
         }
 
@@ -803,7 +869,32 @@
             document.querySelectorAll('.totaux-main-header').forEach(el => {
                 el.setAttribute('colspan', statusCount || 1);
             });
-            document.querySelectorAll('.header-days-row').forEach(row => {
+
+            const rowPerm = document.querySelector('.header-days-row-perm');
+            if(rowPerm) {
+                rowPerm.innerHTML = "";
+                for (let i = 1; i <= currentMonthMeta.days; i++) {
+                    let th = document.createElement('th');
+                    let dayOfWeekIndex = (currentMonthMeta.startDayIndex + (i - 1)) % 7;
+                    th.innerHTML = `${i}<br><span class="th-day-name">${dayLabelsMap[dayOfWeekIndex]}</span>`;
+                    rowPerm.appendChild(th);
+                }
+                Object.keys(customStatuses).forEach(h => {
+                    let th = document.createElement('th'); th.className = "total-col"; th.textContent = h; rowPerm.appendChild(th);
+                });
+                let thAst = document.createElement('th');
+                thAst.className = "total-col";
+                thAst.style.backgroundColor = "#b30000";
+                thAst.style.color = "white";
+                thAst.textContent = "Astreintes";
+                rowPerm.appendChild(thAst);
+
+                let thAction = document.createElement('th'); thAction.className = "action-col"; thAction.textContent = "Actions"; rowPerm.appendChild(thAction);
+            }
+
+            function fillSaisonnierHeader(selector) {
+                const row = document.querySelector(selector);
+                if(!row) return;
                 row.innerHTML = "";
                 for (let i = 1; i <= currentMonthMeta.days; i++) {
                     let th = document.createElement('th');
@@ -812,16 +903,13 @@
                     row.appendChild(th);
                 }
                 Object.keys(customStatuses).forEach(h => {
-                    let th = document.createElement('th'); th.textContent = h; row.appendChild(th);
+                    let th = document.createElement('th'); th.className = "total-col"; th.textContent = h; row.appendChild(th);
                 });
-                let thAstreintes = document.createElement('th');
-                thAstreintes.style.backgroundColor = "#b30000";
-                thAstreintes.style.color = "white";
-                thAstreintes.textContent = "Astreintes";
-                row.appendChild(thAstreintes);
-
                 let thAction = document.createElement('th'); thAction.className = "action-col"; thAction.textContent = "Actions"; row.appendChild(thAction);
-            });
+            }
+
+            fillSaisonnierHeader('.header-days-row-sais-morzine');
+            fillSaisonnierHeader('.header-days-row-sais-avoriaz');
         }
 
         function isEmployeeVisibleInMonth(emp, year, monthId) {
@@ -838,13 +926,17 @@
         }
 
         function renderTable() {
-            renderTableBody('planning-body-perm', 'permanent');
-            renderTableBody('planning-body-sais-morzine', 'saisonnier_morzine');
-            renderTableBody('planning-body-sais-avoriaz', 'saisonnier_avoriaz');
+            renderTableBody('planning-body-perm', 'permanent', true);
+            renderTableBody('planning-body-sais-morzine', 'saisonnier_morzine', false);
+            renderTableBody('planning-body-sais-avoriaz', 'saisonnier_avoriaz', false);
             
+            document.querySelectorAll('.total-col').forEach(el => {
+                el.style.display = isAdmin ? 'table-cell' : 'none';
+            });
             document.querySelectorAll('.action-col').forEach(el => {
                 el.style.display = isAdmin ? 'table-cell' : 'none';
             });
+
             updateEmployeeDropdown();
             
             const tables = ['planning-table-perm', 'planning-table-sais-morzine', 'planning-table-sais-avoriaz'];
@@ -857,7 +949,7 @@
             });
         }
 
-        function renderTableBody(tbodyId, typeFilter) {
+        function renderTableBody(tbodyId, typeFilter, hasAstreinte) {
             const tbody = document.getElementById(tbodyId);
             if(!tbody) return;
             tbody.innerHTML = "";
@@ -882,7 +974,7 @@
                     td.setAttribute('data-day', d);
                     
                     let dayObj = monthData[emp][d] || { m: "-", am: "-", astreinte: false };
-                    if (dayObj.astreinte) td.classList.add('has-astreinte');
+                    if (hasAstreinte && dayObj.astreinte) td.classList.add('has-astreinte');
                     
                     let container = document.createElement('div');
                     container.className = "cell-container";
@@ -919,15 +1011,16 @@
                 Object.keys(customStatuses).forEach(h => {
                     let tdTotal = document.createElement('td');
                     const safeEmpClass = emp.replace(/\s+/g, '_');
-                    tdTotal.className = `total-cell cell-total-${safeEmpClass}-${h}`;
+                    tdTotal.className = `total-col total-cell cell-total-${safeEmpClass}-${h}`;
                     tr.appendChild(tdTotal);
                 });
 
-                // Colonne du total des astreintes pour le mois
-                let tdAstTotal = document.createElement('td');
-                const safeEmpClass = emp.replace(/\s+/g, '_');
-                tdAstTotal.className = `astreinte-total-cell cell-total-astreinte-${safeEmpClass}`;
-                tr.appendChild(tdAstTotal);
+                if (hasAstreinte) {
+                    let tdAstTotal = document.createElement('td');
+                    const safeEmpClass = emp.replace(/\s+/g, '_');
+                    tdAstTotal.className = `total-col astreinte-total-cell cell-total-astreinte-${safeEmpClass}`;
+                    tr.appendChild(tdAstTotal);
+                }
 
                 let tdAction = document.createElement('td');
                 tdAction.className = "action-col";
@@ -938,7 +1031,7 @@
                 tr.appendChild(tdAction);
 
                 tbody.appendChild(tr);
-                updateRowTotals(emp);
+                updateRowTotals(emp, hasAstreinte);
             });
         }
 
@@ -978,7 +1071,7 @@
                             let dayObj = empMonthData[d] || { m: "-", am: "-", astreinte: false };
                             if (dayObj.m !== "-" && yearlyCounts[dayObj.m] !== undefined) yearlyCounts[dayObj.m] += 0.5;
                             if (dayObj.am !== "-" && yearlyCounts[dayObj.am] !== undefined) yearlyCounts[dayObj.am] += 0.5;
-                            if (dayObj.astreinte) yearlyAstreintesCount++;
+                            if (employeeTypes[emp] === 'permanent' && dayObj.astreinte) yearlyAstreintesCount++;
                         }
                     }
                 }
@@ -992,14 +1085,14 @@
 
                 let tdAstVal = document.createElement('td');
                 tdAstVal.className = "astreinte-total-cell";
-                tdAstVal.textContent = yearlyAstreintesCount > 0 ? yearlyAstreintesCount : "-";
+                tdAstVal.textContent = (employeeTypes[emp] === 'permanent' && yearlyAstreintesCount > 0) ? yearlyAstreintesCount : "-";
                 tr.appendChild(tdAstVal);
 
                 tbody.appendChild(tr);
             });
         }
 
-        function updateRowTotals(employeeName) {
+        function updateRowTotals(employeeName, hasAstreinte) {
             const counts = {};
             Object.keys(customStatuses).forEach(s => counts[s] = 0);
             let astreintesCount = 0;
@@ -1009,7 +1102,7 @@
                 let dayObj = globalYearlyData[currentMonthId][employeeName][d] || { m: "-", am: "-", astreinte: false };
                 if (dayObj.m !== "-" && counts[dayObj.m] !== undefined) counts[dayObj.m] += 0.5;
                 if (dayObj.am !== "-" && counts[dayObj.am] !== undefined) counts[dayObj.am] += 0.5;
-                if (dayObj.astreinte) astreintesCount++;
+                if (hasAstreinte && dayObj.astreinte) astreintesCount++;
             }
             
             Object.keys(customStatuses).forEach(h => {
@@ -1018,9 +1111,11 @@
                 if(el) el.textContent = counts[h];
             });
 
-            const safeEmpClass = employeeName.replace(/\s+/g, '_');
-            let astEl = document.querySelector(`.cell-total-astreinte-${safeEmpClass}`);
-            if(astEl) astEl.textContent = astreintesCount > 0 ? astreintesCount : "-";
+            if (hasAstreinte) {
+                const safeEmpClass = employeeName.replace(/\s+/g, '_');
+                let astEl = document.querySelector(`.cell-total-astreinte-${safeEmpClass}`);
+                if(astEl) astEl.textContent = astreintesCount > 0 ? astreintesCount : "-";
+            }
         }
 
         function handleMouseDown(e, employee, day) {
@@ -1075,19 +1170,23 @@
                 else if (periodType === "M") { dayObj.m = status; } 
                 else if (periodType === "AM") { dayObj.am = status; }
                 
-                await pushScheduleChanges(activeEmployeeRow, d, { m: dayObj.m, am: dayObj.am, astreinte: dayObj.astreinte });
+                await pushScheduleChanges(activeEmployeeRow, d, { m: dayObj.m, am: dayObj.am });
             }
             cleanUpAfterSelection();
         }
 
         async function setAstreinteSelection(boolVal) {
             if (!activeEmployeeRow) return;
+            if (employeeTypes[activeEmployeeRow] !== 'permanent') {
+                alert("Les astreintes sont réservées au personnel permanent.");
+                return;
+            }
             const min = Math.min(dragStartDay, dragEndDay);
             const max = Math.max(dragStartDay, dragEndDay);
             for (let d = min; d <= max; d++) {
                 let dayObj = globalYearlyData[currentMonthId][activeEmployeeRow][d];
                 dayObj.astreinte = boolVal;
-                await pushScheduleChanges(activeEmployeeRow, d, { m: dayObj.m, am: dayObj.am, astreinte: boolVal });
+                await pushScheduleChanges(activeEmployeeRow, d, { astreinte: boolVal });
             }
             cleanUpAfterSelection();
         }
@@ -1148,7 +1247,7 @@
                         if (routine.per === "M") dayObj.am = "-";
                         if (routine.per === "AM") dayObj.m = "-";
                         
-                        await pushScheduleChanges(emp, d, { m: dayObj.m, am: dayObj.am, astreinte: dayObj.astreinte });
+                        await pushScheduleChanges(emp, d, { m: dayObj.m, am: dayObj.am });
                     }
                 }
                 renderTable();
